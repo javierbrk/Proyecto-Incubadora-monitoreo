@@ -44,3 +44,7 @@ app.*.map.json
 
 #linux platform generable files
 /linux
+
+#files that generate automatically
+.metadata
+pubspec.lock

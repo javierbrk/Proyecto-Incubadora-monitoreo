@@ -1,5 +1,4 @@
--- load credentials, 'SSID' and 'PASSWORD' declared and initialize in there
-dofile("credentials.lua")
+
 -------------------------------------
 -- global variables come from credentials.lua
 -------------------------------------
@@ -19,8 +18,8 @@ W.ap_config.ssid = "incubator"
 W.ap_config.pwd = "12345678"
 W.ap_config.auth = wifi.AUTH_WPA2_PSK
 
-W.station_cfg.ssid = SSID
-W.station_cfg.pwd = PASSWORD
+W.station_cfg.ssid = ""
+W.station_cfg.pwd = ""
 W.station_cfg.scan_method = "all"
 
 
@@ -79,7 +78,7 @@ end -- end if
 --
 ------------------------------------------------------------------------------------
 
-function configwifi()
+function W:init_wifi()
 	print("Running")
 	wifi.sta.on("got_ip", wifi_got_ip_event)
 	wifi.sta.on("connected", wifi_connect_event)
@@ -217,17 +216,14 @@ function wifi_disconnect_event (ev, info)
 	end -- end if
 end -- end function
 
-configwifi()
-print("Connecting to WiFi access point...")
 
 function W:on_change(new_config_table)
-	if new_config_table.ssid ~= W.station_cfg.ssid then
+	if new_config_table.ssid ~= W.station_cfg.ssid or
+	new_config_table.passwd ~= new_config_table.passwd then
 		W:set_new_ssid(new_config_table.ssid)
 		W:set_passwd(new_config_table.passwd)
 		W.station_cfg.scan_method = "all"
-		wifi.sta.disconnect()
 		wifi.sta.config(W.station_cfg, true)
-		wifi.sta.connect()
 	else
 		return
 	end

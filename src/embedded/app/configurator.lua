@@ -7,10 +7,9 @@ configurator =
 -------------------------------------------------------------------------------------
 -- @method configurator:init_module   load config file to incubator table
 -------------------------------------------------------------------------------------
-function configurator:init_module(incubator_object) --wifi_object)
+function configurator:init_module(incubator_object)
   local config_table = configurator:read_config_file()
   configurator.incubator = incubator_object
-  --configurator.wifi = wifi_object
   if config_table ~= nil then
     configurator:load_objects_data(config_table)
   end
@@ -27,9 +26,7 @@ end
 -------------------------------------------------------------------------------------
 function configurator:encode_config_file(new_config_table)
   local table_to_json = sjson.encode(new_config_table)
-
   local new_config_file = io.open("config.json", "w")
-
   if not new_config_file then
     return false
   else
@@ -85,13 +82,10 @@ function configurator:load_objects_data(new_config_table)
       status.rotation_duration = incubator.set_rotation_duration(tonumber(value))
     elseif param == "rotation_period" then
       status.rotation_period = incubator.set_rotation_period(tonumber(value))
-    elseif param == "ssid" then
-      status.ssid = configurator.wifi.set_new_ssid(tostring(value))
-    elseif param == "passwd" then
-      status.passwd = configurator.wifi.set_passwd(tostring(value))
     end
   end
   configurator.wifi:on_change(new_config_table)
+  configurator.wifi:init_wifi()
   return status
 end
 

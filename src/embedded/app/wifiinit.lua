@@ -93,7 +93,6 @@ function W:init_wifi()
 	wifi.sta.connect()
 end -- end function
 
-_G[W] = W
 ------------------------------------------------------------------------------------
 --
 -- ! @function wifi_connect_event        establishes connection

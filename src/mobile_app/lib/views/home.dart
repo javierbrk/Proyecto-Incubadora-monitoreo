@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:incubapp_lite/services/api_services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +6,6 @@ import 'package:incubapp_lite/views/initial_home.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:incubapp_lite/views/home.dart';
 import 'package:incubapp_lite/views/wifi_home.dart';
-import 'package:incubapp_lite/views/initial_home.dart';
-import 'package:incubapp_lite/services/api_services.dart';
 import 'package:incubapp_lite/views/counter_home.dart';
 import 'package:incubapp_lite/views/graf_home.dart';
 import 'package:incubapp_lite/models/config_model.dart';
@@ -24,6 +23,7 @@ class _HomeState extends State<Home> {
   String incubator_name = 'Incu 1';
 
   late Config? _configModel = Config(ssid: "SSID", minTemperature: 37, maxTemperature: 39, rotationPeriod: 3600000, rotationDuration: 5000, passwd: "12345678", hash: 1234, incubationPeriod: 18, trayOneDate: 10000, trayTwoDate: 5000, trayThreeDate: 0);
+  
   @override
   void initState() {
     super.initState();
@@ -32,6 +32,22 @@ class _HomeState extends State<Home> {
   Future<void> _getData() async {
     _configModel = await ApiService().getConfig();
     setState(() {});
+  }
+
+  String calculateElapsedTime(int epochTime) {
+    if (epochTime == 0) {
+      return "LA BANDEJA ESTÁ VACÍA";
+    }
+    
+    int nowEpoch = DateTime.now().millisecondsSinceEpoch;
+    int difference = nowEpoch - epochTime;
+
+    Duration duration = Duration(milliseconds: difference);
+    int days = duration.inDays;
+    int hours = duration.inHours % 24;
+    int minutes = duration.inMinutes % 60;
+
+    return '$days días, $hours horas y $minutes minutos';
   }
 
   @override
@@ -48,8 +64,8 @@ class _HomeState extends State<Home> {
     int tray_one_date = _configModel?.trayOneDate ?? 0;
     int tray_two_date = _configModel?.trayTwoDate ?? 0;
     int tray_three_date = _configModel?.trayThreeDate ?? 0;
-    
-    
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Configuraciones'),
@@ -154,15 +170,15 @@ class _HomeState extends State<Home> {
             ),
             ListTile(
               title: Text('DIAS DE INCUBACION B. 1'),
-              subtitle: Text('$tray_one_date'),
+              subtitle: Text(calculateElapsedTime(tray_one_date)),
             ),
             ListTile(
               title: Text('DIAS DE INCUBACION B. 2'),
-              subtitle: Text('$tray_two_date'),
+              subtitle: Text(calculateElapsedTime(tray_two_date)),
             ),
             ListTile(
               title: Text('DIAS DE INCUBACION B. 3'),
-              subtitle: Text('$tray_three_date'),
+              subtitle: Text(calculateElapsedTime(tray_three_date)),
             ),
             ListTile(
               title: Text('DÍAS DEL PROCESO'),

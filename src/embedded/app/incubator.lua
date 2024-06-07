@@ -30,6 +30,7 @@ local M = {
 	is_simulate_temp_local = false,
 	rotation_duration        = 5000, -- time in ms
 	rotation_period      = 3600000, -- time in ms
+	zc_counter			   = 0
 	-- ssid = nil, 
 	-- passwd = nil
 }
@@ -57,7 +58,47 @@ function M.init_values()
 	gpio.write(GPIOVOLTEO, 1)
 	gpio.write(GPIORESISTOR, 1)
 	gpio.write(12, 1)
+	gpio.config( { gpio={GPIOZC}, dir=gpio.INTR_UP})
+	gpio.trig(GPIOREEDS, gpio.INTR_LOW, trigger)
+
+
 end -- end function
+
+--[the same but using zc_trigger]
+function zc_trigger(gpio, _)
+	if M.resistor then
+		gpio.write(GPIORESISTOR, 1)
+	else
+		gpio.write(GPIORESISTOR, 0)
+	end
+end
+
+--[using half power]
+function zc_trigger_half(gpio, _)
+	if M.resistor then
+		M.zc_counter=M.zc_counter ~ 1
+		if(M.zc_counter) then
+			gpio.write(GPIORESISTOR, 1)
+		else
+			gpio.write(GPIORESISTOR, 0)
+		end
+	else
+		gpio.write(GPIORESISTOR, 0)
+	end
+end
+
+function zc_trigger_third(gpio, _)
+	if M.resistor then
+		M.zc_counter=(M.zc_counter + 1) %3
+		if(M.zc_counter==0) then
+			gpio.write(GPIORESISTOR, 1)
+		else
+			gpio.write(GPIORESISTOR, 0)
+		end
+	else
+		gpio.write(GPIORESISTOR, 0)
+	end
+end
 
 -------------------------------------
 -- @function enable_testing 	Enables testing mode asserting correct M funcioning
@@ -126,11 +167,11 @@ end --end function
 -------------------------------------
 function M.heater(status --[[bool]])
 	M.resistor = status
-	if status then
-		gpio.write(GPIORESISTOR, 1)
-	else
-		gpio.write(GPIORESISTOR, 0)
-	end
+	-- if status then
+	-- 	gpio.write(GPIORESISTOR, 1)
+	-- else
+	-- 	gpio.write(GPIORESISTOR, 0)
+	-- end
 	M.assert_conditions()
 end --end function
 

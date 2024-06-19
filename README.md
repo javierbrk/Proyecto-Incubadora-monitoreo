@@ -89,6 +89,7 @@ To load the scripts we have 2 options:
 
 
 ## Option 1 (ESPlorer)
+* [Link to git and readme for the latest version of ESPlorer](https://github.com/4refr0nt/ESPlorer)
 
  clone the repository:
 

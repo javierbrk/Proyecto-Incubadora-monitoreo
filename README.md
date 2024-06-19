@@ -88,7 +88,7 @@ To load the scripts we have 2 options:
 * VSCodium... remember to install sumneko's Lua package, then using the open addon manager install esp32 definitions. 
 
 
-## Option 1 (ESPlorer)
+## Option 1 (ESPlorer, must be latest version)
 * [Link to git and readme for the latest version of ESPlorer](https://github.com/4refr0nt/ESPlorer)
 
  clone the repository:

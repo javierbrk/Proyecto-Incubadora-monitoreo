@@ -145,7 +145,7 @@ after giving it permissions, run the installer:
 
 ## Useful Links
 
-* [Pad incubadora](https://pad.codigosur.org/AM_incubadora)
+* [Pad incubadora](https://pad.codigosur.org/AM_Proyecto_Incubadora)
 * [Sensor information BME280](https://3iinc.xyz/blog/how-to-use-i2c-sensor-bme280-with-esp32cam/)
 * [Documentation nodemcu](https://nodemcu.readthedocs.io/en/dev-esp32)
 * [Repository with modules Lua](https://github.com/novalabsxyz/api-examples/blob/master/script/bme280/bme280.lua)

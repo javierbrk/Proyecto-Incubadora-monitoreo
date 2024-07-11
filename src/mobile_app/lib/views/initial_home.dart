@@ -8,6 +8,7 @@ import 'package:incubapp_lite/views/wifi_home.dart';
 import 'package:incubapp_lite/services/api_services.dart';
 import 'package:incubapp_lite/views/counter_home.dart';
 import 'package:incubapp_lite/views/graf_home.dart';
+import 'package:incubapp_lite/views/notif_home.dart';
 
 void main() => runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -37,6 +38,22 @@ class _IHomeState extends State<IHome> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            iconSize: 30.0,
+            icon: Icon(Icons.notifications, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NHome()),
+              );
+            },
+          ),
+        ],
+      ),
       backgroundColor: Colors.grey,
       body: _buildBody(size, temperature, humidity),
       bottomNavigationBar: BottomNavigationBar(

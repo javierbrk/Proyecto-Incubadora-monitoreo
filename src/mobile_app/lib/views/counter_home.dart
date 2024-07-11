@@ -24,16 +24,25 @@ class _CHomeState extends State<CHome> {
 
   List<int?> _bandejaTimestamps = [0, 0, 0];
 
-  late Config? _configModel = Config(ssid: "SSID", minTemperature: 37, maxTemperature: 39, rotationPeriod: 3600000, rotationDuration: 5000, passwd: "12345678", hash: 1234, incubationPeriod: 18, trayOneDate: 10000, trayTwoDate: 5000, trayThreeDate: 0);
+  late Config? _configModel = Config(ssid: "SSID", minTemperature: 37, maxTemperature: 39, rotationPeriod: 3600000, rotationDuration: 5000, passwd: "12345678", hash: 1234, incubationPeriod: 18, trayOneDate: 0, trayTwoDate: 0, trayThreeDate: 0);
 
   @override
   void initState() {
     super.initState();
     _getData();
   }
+
   Future<void> _getData() async {
     _configModel = await ApiService().getConfig();
-    setState(() {});
+    setState(() {
+      _initializeBandejaColors();
+    });
+  }
+
+  void _initializeBandejaColors() {
+    _bandejaSelectedIndexList[0] = _configModel?.trayOneDate == 0 ? 1 : 0;
+    _bandejaSelectedIndexList[1] = _configModel?.trayTwoDate == 0 ? 1 : 0;
+    _bandejaSelectedIndexList[2] = _configModel?.trayThreeDate == 0 ? 1 : 0;
   }
 
   @override
@@ -274,6 +283,5 @@ class _CHomeState extends State<CHome> {
     },
   );
 }
-
 
 }

@@ -27152,7 +27152,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "a0e31eb5-99aa-4f35-bba3-ac2ce4383ddb")
 		(property "Reference" "#PWR07"
 			(at 120.65 27.94 0)
@@ -27163,13 +27162,12 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3.3V"
-			(at 113.03 27.9401 90)
+		(property "Value" "+3.3V_fused"
+			(at 110.998 26.416 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -29172,4 +29170,3 @@
 		)
 	)
 )
-

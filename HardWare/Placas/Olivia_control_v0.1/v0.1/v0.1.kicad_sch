@@ -6937,6 +6937,16 @@
 	)
 	(wire
 		(pts
+			(xy 125.73 39.37) (xy 124.46 39.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a44eb00a-6fdd-4186-a53d-34d17e19cdd1")
+	)
+	(wire
+		(pts
 			(xy 50.8 138.43) (xy 49.53 138.43)
 		)
 		(stroke
@@ -7387,7 +7397,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 39.37) (xy 102.87 39.37)
+			(xy 102.87 39.37) (xy 116.84 39.37)
 		)
 		(stroke
 			(width 0)
@@ -26466,6 +26476,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 120.65 39.37 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8eb29ebb-e56a-4109-8577-f9b42488a43f")
+		(property "Reference" "R5"
+			(at 119.126 35.306 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10K"
+			(at 119.126 37.084 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 120.65 37.592 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 120.65 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 120.65 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "5032317c-c6f1-4d80-be81-31bb6155aff6")
+		)
+		(pin "1"
+			(uuid "d22da414-c1a8-41b2-97c0-04c2a86dbed0")
+		)
+		(instances
+			(project "v0.1"
+				(path "/a54d3fb9-76ae-420b-bd93-2bd7bd13953b"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 154.94 21.59 0)
 		(unit 1)
@@ -27849,6 +27928,72 @@
 			(project "v0.1"
 				(path "/a54d3fb9-76ae-420b-bd93-2bd7bd13953b"
 					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 125.73 39.37 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c96c818c-b581-495c-ac14-bfda278a2ad6")
+		(property "Reference" "#PWR035"
+			(at 121.92 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 130.81 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 125.73 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 125.73 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 125.73 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "84c8e9d2-0c23-4713-bbbf-659883a8cdcc")
+		)
+		(instances
+			(project "v0.1"
+				(path "/a54d3fb9-76ae-420b-bd93-2bd7bd13953b"
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)

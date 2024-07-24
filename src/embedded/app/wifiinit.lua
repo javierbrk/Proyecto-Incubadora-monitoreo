@@ -1,7 +1,3 @@
-
--------------------------------------
--- global variables come from credentials.lua
--------------------------------------
 W = {
 	sta_cfg = {},
 	ap_config = {},
@@ -33,7 +29,7 @@ IPGW = nil
 -- -----------------------------------
 function W:set_new_ssid(new_ssid)
 	if new_ssid ~= nil then
-		W.station_cfg.ssid = new_ssid 
+		W.station_cfg.ssid = new_ssid
 		return true
 	else
 		return false
@@ -41,7 +37,7 @@ function W:set_new_ssid(new_ssid)
 end
 
 -------------------------------------
--- @function set_passwd	modify the actual ssid WiFi 
+-- @function set_passwd	modify the actual ssid WiFi
 -------------------------------------
 function W:set_passwd(new_passwd)
 	if new_passwd ~= nil then
@@ -50,13 +46,13 @@ function W:set_passwd(new_passwd)
 	else
 		return false
 	end
-end
-------------------------------------------------------------------------------------
--- 
+end ---------------------------------------------------------------------------
+
+--
 -- ! @function startup                   opens init.lua if exists, otherwise,
 -- !                                     prints "running"
 --
------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 function startup()
 	if file.open("init.lua") == nil then
@@ -69,7 +65,7 @@ function startup()
 		-------------------------------------
 		dofile("application.lua")
 	end -- end else
-end -- end if
+end  -- end if
 
 ------------------------------------------------------------------------------------
 --
@@ -78,18 +74,31 @@ end -- end if
 --
 ------------------------------------------------------------------------------------
 
-function W:init_wifi()
+function configwifi()
 	print("Running")
 	wifi.sta.on("got_ip", wifi_got_ip_event)
 	wifi.sta.on("connected", wifi_connect_event)
 	wifi.sta.on("disconnected", wifi_disconnect_event)
 	wifi.mode(wifi.STATIONAP)
-	wifi.ap.setip(W.sta_cfg)
-	wifi.ap.config(W.ap_config,true)
-	wifi.ap.on("sta_connected", function(event, info) print("MAC_id"..info.mac,"Name"..info.id) end)
+	sta_cfg = {}
+	sta_cfg.ip = '192.168.16.10'
+	sta_cfg.netmask = '255.255.255.0'
+	sta_cfg.gateway = '192.168.16.1'
+	sta_cfg.dns = '8.8.8.8'
+	wifi.ap.setip(sta_cfg)
+	wifi.ap.config({
+		ssid = "incubator",
+		pwd = "12345678",
+		auth = wifi.AUTH_WPA2_PSK
+	}, true)
+	wifi.ap.on("sta_connected", function(event, info) print("MAC_id" .. info.mac, "Name" .. info.id) end)
 	wifi.start()
-	wifi.sta.config(W.station_cfg,true)
-    wifi.sta.sethostname(INICIALES.."-ESP32")
+	station_cfg = {}
+	station_cfg.ssid = SSID
+	station_cfg.pwd = PASSWORD
+	station_cfg.scan_method = all
+	wifi.sta.config(station_cfg, true)
+	wifi.sta.sethostname(INICIALES .. "-ESP32")
 	wifi.sta.connect()
 end -- end function
 
@@ -102,17 +111,14 @@ end -- end function
 --
 ------------------------------------------------------------------------------------
 
-function wifi_connect_event (ev, info)
+function wifi_connect_event(ev, info)
 	print(string.format("conecction to AP %s established!", tostring(info.ssid)))
 	print("Waiting for IP address...")
-	
-	if disconnect_ct ~= nil then 
-		
-		disconnect_ct = nil 
-	
-	end -- end if
 
-end -- end function
+	if disconnect_ct ~= nil then
+		disconnect_ct = nil
+	end -- end if
+end  -- end function
 
 ------------------------------------------------------------------------------------
 --
@@ -120,10 +126,10 @@ end -- end function
 --
 -- ! @param ev                           event status
 -- ! @param info                         net information
--- ! 
+-- !
 ------------------------------------------------------------------------------------
 
-function wifi_got_ip_event (ev, info)
+function wifi_got_ip_event(ev, info)
 	-------------------------------------
 	-- Note: Having an IP address does not mean there is internet access!
 	-- Internet connectivity can be determined with net.dns.resolve().
@@ -135,12 +141,11 @@ function wifi_got_ip_event (ev, info)
 	print("Startup will resume momentarily, you have 3 seconds to abort.")
 	print("Waiting...")
 	print(time.get(), " hora vieja")
-	if(not time.ntpenabled())then
+	if (not time.ntpenabled()) then
 		time.initntp("pool.ntp.org")
 	end
 	print(time.get(), " hora nueva")
 	time.settimezone(TIMEZONE)
-
 end -- end function
 
 ------------------------------------------------------------------------------------
@@ -151,81 +156,99 @@ end -- end function
 -- ! @param info                         net information
 --
 ------------------------------------------------------------------------------------
-function wifi_disconnect_event (ev, info)
+function wifi_disconnect_event(ev, info)
 	ONLINE = 0
 	print(info)
 	print(info.reason)
 	print(info.ssid)
 
 	if info.reason == 8 then
-		-------------------------------------
-		--the station has disassociated from a previously connected AP
-		-------------------------------------
+		-- the station has disassociated from a previously connected AP
 		return
-	end -- end function
+	end
 
-	------------------------------------------------------------------------------------
-	-- total_tries: how many times the station will attempt to connect to the AP. Should consider AP reboot duration.
-	------------------------------------------------------------------------------------
 	local total_tries = 10
 	print("\nWiFi connection to AP(" .. info.ssid .. ") has failed!")
-
-	------------------------------------------------------------------------------------
-	-- There are many possible disconnect reasons, the following iterates through
-	-- the list and returns the string corresponding to the disconnect reason.
-	------------------------------------------------------------------------------------
 	print("Disconnect reason: " .. info.reason)
+
 	if disconnect_ct == nil then
 		disconnect_ct = 1
 	else
 		disconnect_ct = disconnect_ct + 1
-	end -- end if
-	wifi.sta.connect()
+	end -- if end
 
 	if disconnect_ct < total_tries then
 		print("Retrying connection...(attempt " .. (disconnect_ct + 1) .. " of " .. total_tries .. ")")
+		wifi.sta.connect()
 	else
 		wifi.sta.disconnect()
-		------------------------------------------------------------------------------------
-		--
-		-- ! @function wifi.sta.scan         prints avaliable networks
-		--
-		-- ! @param err                      when scan fails shows the error
-		-- ! @param arr                      lists the avaliable networks
-		--
-		------------------------------------------------------------------------------------
-		wifi.sta.scan({ hidden = 1 }, 
-			function(err,arr)
-				if err then
-					print ("Scan failed:", err)
-				else
-					print(string.format("%-26s","SSID"),"Channel BSSID              RSSI Auth Bandwidth")
-					for i,ap in ipairs(arr) do
-						print(string.format("%-32s",ap.ssid),ap.channel,ap.bssid,ap.rssi,ap.auth,ap.bandwidth)
-					end -- end for
-				print("-- Total APs: ", #arr)
-				end -- end if
-			end) -- end function
-		
-		print("Aborting connection to AP!")
+
+		if W.old_ssid and W.old_passwd then
+			print("Attempting to connect with previous credentials")
+			W:set_new_ssid(W.old_ssid)
+			W:set_passwd(W.old_passwd)
+			station_cfg = {
+				ssid = W.old_ssid,
+				pwd = W.old_passwd,
+				save = true
+			}
+			wifi.sta.config(station_cfg)
+			W.old_ssid = nil
+			W.old_passwd = nil
+		end -- if end 
+
+		print("Reattempting WiFi connection in 10 seconds...")
 		mytimer = tmr.create()
 		mytimer:register(10000, tmr.ALARM_SINGLE, configwifi)
 		mytimer:start()
 		disconnect_ct = nil
-	end -- end if
-end -- end function
+	end -- else end
+end -- function end
 
-
+------------------------------------------------------------------------------------
+-- ! @function W:on_change
+-- ! manage the new WiFi conections
+-- @param new_config_table            contains the ssid and passwd 
+------------------------------------------------------------------------------------
 function W:on_change(new_config_table)
-	if new_config_table.ssid ~= W.station_cfg.ssid or
-	new_config_table.passwd ~= new_config_table.passwd then
-		W:set_new_ssid(new_config_table.ssid)
-		W:set_passwd(new_config_table.passwd)
-		W.station_cfg.scan_method = "all"
-		wifi.sta.config(W.station_cfg, true)
+	local new_ssid = new_config_table.ssid
+	local new_passwd = new_config_table.passwd
+	local config_changed = false
+
+	-- Verifica si son diferentes de las actuales
+	if new_ssid and new_ssid ~= W.station_cfg.ssid then
+		W:set_new_ssid(new_ssid)
+		config_changed = true
+	end -- if end 
+
+	if new_passwd and new_passwd ~= W.station_cfg.pwd then
+		W:set_passwd(new_passwd)
+		config_changed = true
+	end -- if end
+
+	if config_changed then
+		-- save the actual credentials 
+		W.old_ssid = W.station_cfg.ssid
+		W.old_passwd = W.station_cfg.pwd
+
+		-- update the config and try connect 
+		wifi.sta.disconnect()
+		station_cfg = {
+			ssid = W.station_cfg.ssid,
+			pwd = W.station_cfg.pwd,
+			save = true
+		}
+		wifi.sta.config(station_cfg)
+		wifi.sta.connect()
 	else
-		return
-	end
-end
+		-- try reconnect
+		wifi.sta.disconnect()
+		wifi.sta.connect()
+	end -- else end
+end -- function end
+
+configwifi()
+print("Connecting to WiFi access point...")
+
 
 return W

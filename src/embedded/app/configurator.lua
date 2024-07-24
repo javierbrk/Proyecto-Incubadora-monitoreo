@@ -1,7 +1,7 @@
 configurator =
 {
   incubator = {},
-  wifi = require("wifiinit"),
+  WiFi = require("wifiinit"),
 
 }
 -------------------------------------------------------------------------------------
@@ -84,8 +84,7 @@ function configurator:load_objects_data(new_config_table)
       status.rotation_period = incubator.set_rotation_period(tonumber(value))
     end
   end
-  configurator.wifi:on_change(new_config_table)
-  configurator.wifi:init_wifi()
+	configurator.WiFi:on_change(new_config_table)
   return status
 end
 

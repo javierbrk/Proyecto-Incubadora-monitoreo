@@ -47,13 +47,13 @@ end
 
 function M.init_values()
 	M.startbme()
-	gpio.config({ gpio = { GPIOVOLTEO, GPIORESISTOR, 13, 12 }, dir = gpio.OUT })
+	gpio.config({ gpio = { GPIOVOLTEO, GPIORESISTOR, 13, 12, 33}, dir = gpio.OUT })
 	gpio.set_drive(13, gpio.DRIVE_3)
-	gpio.set_drive(GPIOVOLTEO, gpio.DRIVE_3)
+	gpio.set_drive(33, gpio.DRIVE_3)
 	gpio.set_drive(GPIORESISTOR, gpio.DRIVE_3)
 	gpio.set_drive(12, gpio.DRIVE_3)
 	gpio.write(13, 1)
-	gpio.write(GPIOVOLTEO, 1)
+	gpio.write(33, 1)
 	gpio.write(GPIORESISTOR, 1)
 	gpio.write(12, 1)
 end -- end function
@@ -157,9 +157,9 @@ end   --end fucition
 function M.humidifier(status)
 	humidifier = status
 	if status then
-		gpio.write(14, 0)
+		gpio.write(33, 0)
 	else
-		gpio.write(14, 1)
+		gpio.write(33, 1)
 	end -- if end
 end  -- function end
 

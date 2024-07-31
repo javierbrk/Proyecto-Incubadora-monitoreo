@@ -55,15 +55,18 @@ end
 
 function M.init_values()
 	M.startbme()
-	gpio.config({ gpio = { GPIOVOLTEO, GPIORESISTOR, 13, 12 }, dir = gpio.OUT })
-	gpio.set_drive(13, gpio.DRIVE_3)
-	gpio.set_drive(GPIOVOLTEO, gpio.DRIVE_3)
+	gpio.config({ gpio = { GPIORESISTOR, GPIOVOLTEO_O1, GPIOVOLTEO_O2, GPIOHUMID }, dir = gpio.OUT })
+
+	gpio.set_drive(GPIOVOLTEO_O1, gpio.DRIVE_3)
+	gpio.set_drive(GPIOVOLTEO_O2, gpio.DRIVE_3)
+	gpio.set_drive(GPIOHUMID, gpio.DRIVE_3)
 	gpio.set_drive(GPIORESISTOR, gpio.DRIVE_3)
-	gpio.set_drive(12, gpio.DRIVE_3)
-	gpio.write(13, 1)
-	gpio.write(GPIOVOLTEO, 1)
+	
+	--revisar estos valores inicliales
+	gpio.write(GPIOVOLTEO_O1, 1)
+	gpio.write(GPIOVOLTEO_O2, 1)
+	gpio.write(GPIOHUMID, 1)
 	gpio.write(GPIORESISTOR, 1)
-	gpio.write(12, 1)
 end -- end function
 
 -------------------------------------
@@ -207,10 +210,10 @@ function M.humidifier_switch(status)
 	end
 
 	if status and M.humidifier_enabled then
-		gpio.write(14, 0)
+		gpio.write(GPIOHUMID, 0)
 	else
 		M.humidifier = false
-		gpio.write(14, 1)
+		gpio.write(GPIOHUMID, 1)
 	end -- if end
 end  -- function end
 

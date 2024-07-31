@@ -28,9 +28,16 @@ local M = {
 	min_temp               = 37.3,
 	is_sensorok            = false,
 	is_simulate_temp_local = false,
-	rotation_duration        = 5000, -- time in ms
-	rotation_period      = 3600000, -- time in ms
-	-- ssid = nil, 
+	rotation_duration      = 5000, -- time in ms
+	rotation_period        = 3600000, -- time in ms
+	humidifier_enabled     = true,
+	max_hum                = 70,
+	min_hum                = 60,
+	humidifier_max_on_time = 18 * 60, -- 18min in sec
+	humidifier_off_time    = 19 * 60, -- 19mim in sec
+	hum_turn_on_time       = 0,
+	hum_turn_off_time      = 0
+	-- ssid = nil,
 	-- passwd = nil
 }
 
@@ -155,11 +162,54 @@ end   --end fucition
 --
 -- @param status "true" 		  increments humidity, "false" humidity "decrements"
 -------------------------------------
-function M.humidifier(status)
-	humidifier = status
-	if status then
+function M.humidifier_switch(status)
+	current_time = time.get()
+	if M.humidifier_enabled then
+		log.trace("humidifier enabled")
+		if status then
+			if (not M.humidifier) then
+				log.trace("humidifier was off... turning on ")
+
+				--estaba apagado y lo prendo
+				M.hum_turn_on_time = current_time
+				M.humidifier = status
+			else
+				--estaba pendido y sigue
+				log.trace("humidifier was on... turned on" .. M.hum_turn_on_time)
+
+				log.trace("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
+				log.trace("humidifier was on... turning on.. time left " ..
+				(M.humidifier_max_on_time - (current_time - M.hum_turn_on_time)))
+				--verificar el tiempo maximo
+				if ((current_time - M.hum_turn_on_time) > M.humidifier_max_on_time) then
+					M.humidifier_enabled = false
+					M.humidifier = false
+					M.hum_turn_off_time = current_time
+					log.error("humidifier disabled beacuse time greater than max")
+				end
+			end
+		end
+	else
+		log.error("humidifier disabled ")
+		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
+			M.humidifier_enabled = true
+			log.error("humidifier enabled time out expired")
+			if status then
+				if (not M.humidifier) then
+					log.trace("humidifier was off... turning on ")
+
+					--estaba apagado y lo prendo
+					M.hum_turn_on_time = current_time
+					M.humidifier = status
+				end
+			end
+		end
+	end
+
+	if status and M.humidifier_enabled then
 		gpio.write(14, 0)
 	else
+		M.humidifier = false
 		gpio.write(14, 1)
 	end -- if end
 end  -- function end
@@ -169,8 +219,8 @@ end  -- function end
 --
 -- @param status "true" activates rotation, "false" stops rotation
 -------------------------------------
-function M.rotation(status)
-	rotation = status
+function M.rotation_switch(status)
+	M.rotation = status
 	if status then
 		gpio.write(GPIOVOLTEO, 0)
 	else

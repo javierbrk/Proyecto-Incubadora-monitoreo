@@ -33,8 +33,8 @@ local M = {
 	humidifier_enabled     = true,
 	max_hum                = 70,
 	min_hum                = 60,
-	humidifier_max_on_time = 18 * 60, -- 18min in sec
-	humidifier_off_time    = 19 * 60, -- 19mim in sec
+	humidifier_max_on_time = 15 * 60, -- 18min in sec
+	humidifier_off_time    = 5 * 60, -- 19mim in sec
 	hum_turn_on_time       = 0,
 	hum_turn_off_time      = 0
 	-- ssid = nil,
@@ -225,9 +225,9 @@ end  -- function end
 function M.rotation_switch(status)
 	M.rotation = status
 	if status then
-		gpio.write(GPIOVOLTEO, 0)
+		gpio.write(GPIOVOLTEO_O1, 0)
 	else
-		gpio.write(GPIOVOLTEO, 1)
+		gpio.write(GPIOVOLTEO_O1, 1)
 	end -- if end
 	--todo: implement logger for debug
 end  -- function end

@@ -32,12 +32,12 @@ function alerts.send_alert_to_grafana(message)
 			["Authorization"] = "Basic " .. token_grafana
 	}
 	
-	http.post(url, {headers = headers}, alert_string,
-		function(code_return, data_return)
-			if (code_return ~= 204) then
-				print(" " .. code_return)
-			end
-	end) -- * post function end
+--	http.post(url, {headers = headers}, alert_string,
+--		function(code_return, data_return)
+--			if (code_return ~= 204) then
+--				print(" " .. code_return)
+--			end
+--	end) -- * post function end
 end -- * send_data_grafana end
 
 return alerts

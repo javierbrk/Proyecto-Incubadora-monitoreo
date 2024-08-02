@@ -210,10 +210,10 @@ function M.humidifier_switch(status)
 	end
 
 	if status and M.humidifier_enabled then
-		gpio.write(GPIOHUMID, 0)
+		gpio.write(GPIOHUMID, 1)
 	else
 		M.humidifier = false
-		gpio.write(GPIOHUMID, 1)
+		gpio.write(GPIOHUMID, 0)
 	end -- if end
 end  -- function end
 

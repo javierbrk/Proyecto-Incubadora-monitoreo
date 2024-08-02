@@ -160,7 +160,7 @@ end
 incubator.init_values()
 configurator.init_module(incubator)
 apiserver.init_module(incubator,configurator)
-incubator.enable_testing(true)
+incubator.enable_testing(false)
 
 ------------------------------------------------------------------------------------
 -- ! timers

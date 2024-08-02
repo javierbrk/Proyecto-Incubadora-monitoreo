@@ -81,7 +81,7 @@ function temp_control(temperature, min_temp, max_temp)
 end     -- end function
 
 function hum_control(hum, min, max)
-    log.trace(" Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. incubator.humidifier)
+    log.trace(" Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier))
     if hum <= min then
         log.trace("turn hum on")
         incubator.humidifier_switch(true)

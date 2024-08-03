@@ -168,20 +168,20 @@ end   --end fucition
 function M.humidifier_switch(status)
 	current_time = time.get()
 	if M.humidifier_enabled then
-		log.trace("humidifier enabled")
+		log.warn("humidifier enabled")
 		if status then
 			if (not M.humidifier) then
-				log.trace("humidifier was off... turning on ")
+				log.warn("humidifier was off... turning on ")
 
 				--estaba apagado y lo prendo
 				M.hum_turn_on_time = current_time
 				M.humidifier = status
 			else
 				--estaba pendido y sigue
-				log.trace("humidifier was on... turned on" .. M.hum_turn_on_time)
+				log.warn("humidifier was on... turned on" .. M.hum_turn_on_time)
 
-				log.trace("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
-				log.trace("humidifier was on... turning on.. time left " ..
+				log.warn("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
+				log.warn("humidifier was on... turning on.. time left " ..
 				(M.humidifier_max_on_time - (current_time - M.hum_turn_on_time)))
 				--verificar el tiempo maximo
 				if ((current_time - M.hum_turn_on_time) > M.humidifier_max_on_time) then
@@ -196,10 +196,10 @@ function M.humidifier_switch(status)
 		log.error("humidifier disabled ")
 		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
 			M.humidifier_enabled = true
-			log.error("humidifier enabled time out expired")
+			log.warn("humidifier enabled time out expired")
 			if status then
 				if (not M.humidifier) then
-					log.trace("humidifier was off... turning on ")
+					log.warn("humidifier was off... turning on ")
 
 					--estaba apagado y lo prendo
 					M.hum_turn_on_time = current_time
@@ -211,9 +211,12 @@ function M.humidifier_switch(status)
 
 	if status and M.humidifier_enabled then
 		gpio.write(GPIOHUMID, 1)
+		log.warn("humidifier pin turned on--------------------")
 	else
 		M.humidifier = false
 		gpio.write(GPIOHUMID, 0)
+		log.warn("humidifier pin turned off--------------------")
+
 	end -- if end
 end  -- function end
 

@@ -33,7 +33,7 @@ local M = {
 	humidifier_enabled     = true,
 	max_hum                = 70,
 	min_hum                = 60,
-	humidifier_max_on_time = 15 * 60, -- 18min in sec
+	humidifier_max_on_time = 18 * 60, -- 18min in sec
 	humidifier_off_time    = 5 * 60, -- 19mim in sec
 	hum_turn_on_time       = 0,
 	hum_turn_off_time      = 0
@@ -160,17 +160,24 @@ function M.assert_conditions()
 	end -- if is_testing
 end   --end fucition
 
+function M.get_uptime_in_sec()
+	local high_bytes, _ = node.uptime()
+	return tonumber((high_bytes / 1000000))
+end
+
 -------------------------------------
 -- @function humidifier 			Activates or deactivates humidifier
 --
 -- @param status "true" 		  increments humidity, "false" humidity "decrements"
 -------------------------------------
 function M.humidifier_switch(status)
-	current_time = time.get()
+	local current_time = M.get_uptime_in_sec()
+	log.warn("humidifier current_time ".. current_time)
+
 	if M.humidifier_enabled then
 		log.warn("humidifier enabled")
-		if status then
-			if (not M.humidifier) then
+		if status then -- encender humidifier
+			if (not M.humidifier) then -- estaba apagado
 				log.warn("humidifier was off... turning on ")
 
 				--estaba apagado y lo prendo
@@ -192,7 +199,7 @@ function M.humidifier_switch(status)
 				end
 			end
 		end
-	else
+	else --humidifier disabled
 		log.error("humidifier disabled ")
 		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
 			M.humidifier_enabled = true
@@ -200,7 +207,6 @@ function M.humidifier_switch(status)
 			if status then
 				if (not M.humidifier) then
 					log.warn("humidifier was off... turning on ")
-
 					--estaba apagado y lo prendo
 					M.hum_turn_on_time = current_time
 					M.humidifier = status

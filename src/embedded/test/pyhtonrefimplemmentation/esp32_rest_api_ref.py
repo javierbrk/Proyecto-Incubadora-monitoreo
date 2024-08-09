@@ -8,7 +8,6 @@ import json
 
 app = Flask(__name__)
 app.debug = True
-app.run(host='0.0.0.0', port=8080)
 
 html_content = """
 <!DOCTYPE html>
@@ -27,6 +26,8 @@ html_content = """
 incubator_name = "Incu"
 min_temperature = 33
 max_temperature = 38
+min_humidity = 55
+max_humidity = 60
 rotation_duration = 3500000
 rotation_period = 5000
 ssid = "mimimi"
@@ -41,6 +42,8 @@ config_dict = {
     "incubator_name": incubator_name,
     "min_temperature": min_temperature,
     "max_temperature": max_temperature,
+    "min_humidity": min_humidity,
+    "max_humidity": max_humidity,
     "rotation_duration": rotation_duration,
     "rotation_period": rotation_period,
     "ssid": ssid,
@@ -107,4 +110,4 @@ def actual_getter():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)

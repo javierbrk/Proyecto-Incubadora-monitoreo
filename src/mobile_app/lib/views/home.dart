@@ -22,7 +22,7 @@ class _HomeState extends State<Home> {
   int _selectedIndex = 0; 
   String incubator_name = 'Incu 1';
 
-  late Config? _configModel = Config(incubatorName: "Nombre", ssid: "SSID", minTemperature: 37, maxTemperature: 39, rotationPeriod: 3600000, rotationDuration: 5000, passwd: "12345678", hash: 1234, incubationPeriod: 18, trayOneDate: 10000, trayTwoDate: 5000, trayThreeDate: 0);
+  late Config? _configModel = Config(incubatorName: "Nombre", ssid: "SSID", minHumidity: 50, maxHumidity: 70, minTemperature: 37, maxTemperature: 39, rotationPeriod: 3600000, rotationDuration: 5000, passwd: "12345678", hash: 1234, incubationPeriod: 18, trayOneDate: 10000, trayTwoDate: 5000, trayThreeDate: 0);
   
   @override
   void initState() {
@@ -57,6 +57,8 @@ class _HomeState extends State<Home> {
     int incubation_period = _configModel?.incubationPeriod ?? 0;
     int maxtemp = _configModel?.maxTemperature ?? 0;
     int mintemp = _configModel?.minTemperature ?? 0;
+    int maxhum = _configModel?.maxHumidity ?? 0;
+    int minhum = _configModel?.minHumidity ?? 0;
     String password = _configModel?.passwd ?? "";
     int rotation_duration = _configModel?.rotationDuration ?? 0;
     int rotation_period =_configModel?.rotationPeriod ?? 0;
@@ -94,7 +96,7 @@ class _HomeState extends State<Home> {
                               setState(() {
                                 _configModel?.incubatorName = newName; 
                               });
-                              ApiService().updateConfig({'incubator_name': newName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature,'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
+                              ApiService().updateConfig({'incubator_name': newName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature, 'max_humidity': _configModel?.maxHumidity, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
                             } else {
                               print('Valor de temperatura no válido');
                             }
@@ -128,7 +130,7 @@ class _HomeState extends State<Home> {
                               _configModel?.maxTemperature = newMaxTemp; // Actualiza _configModel?.maxTemperature en lugar de una variable que luego es enviada
                             });
                             // Llama a la función para enviar los datos actualizados a la API
-                            ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': newMaxTemp,'min_temperature': _configModel?.minTemperature,'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date});
+                            ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': newMaxTemp, 'min_temperature': _configModel?.minTemperature,'max_humidity': _configModel?.maxHumidity, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date});
                           } else {
                             // Maneja el caso en el que la conversión a int falla
                             print('Valor de temperatura no válido');
@@ -162,9 +164,77 @@ class _HomeState extends State<Home> {
                               setState(() {
                                 _configModel?.minTemperature = newMinTemp; 
                               });
-                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': newMinTemp,'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
+                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': newMinTemp, 'max_humidity': _configModel?.maxHumidity, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
                             } else {
                               print('Valor de temperatura no válido');
+                            }
+                          }
+                        },
+                      );
+                    },
+                    icon: Icon(Icons.edit),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              title: Text('HUMEDAD MÁXIMA'),
+              subtitle: Row(
+                children: [
+                  Text('${_configModel?.maxHumidity ?? 0}'),
+                  SizedBox(width: 12),
+                  IconButton(
+                    onPressed: () {
+                    _showInputDialog(
+                      context,
+                      'HUMEDAD MÁXIMA',
+                      (_configModel?.maxHumidity ?? 0).toString(),
+                      (newValue) {
+                        if (newValue != null && newValue.isNotEmpty) {
+                          int? newMaxHum = int.tryParse(newValue);
+
+                          if (newMaxHum != null) {
+                            setState(() {
+                              _configModel?.maxHumidity = newMaxHum;
+                            });
+                            // Llama a la función para enviar los datos actualizados a la API
+                            ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature, 'max_humidity': newMaxHum, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date});
+                          } else {
+                            // Maneja el caso en el que la conversión a int falla
+                            print('Valor de humedad no válido');
+                          }
+                        }
+                      },
+                    );
+                  },
+                    icon: Icon(Icons.edit),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              title: Text('HUMEDAD MÍNIMA'),
+              subtitle: Row(
+                children: [
+                  Text('${_configModel?.minHumidity ?? 0}'),
+                  SizedBox(width: 12),
+                  IconButton(
+                    onPressed: () {
+                      _showInputDialog(
+                        context,
+                        'HUMEDAD MÍNIMA',
+                        (_configModel?.minHumidity ?? 0).toString(),
+                        (newValue) {
+                          if (newValue != null && newValue.isNotEmpty) {
+                            int? newMinHum = int.tryParse(newValue);
+
+                            if (newMinHum != null) { 
+                              setState(() {
+                                _configModel?.minHumidity = newMinHum; 
+                              });
+                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature, 'max_humidity': _configModel?.maxHumidity, 'min_humidity': newMinHum, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
+                            } else {
+                              print('Valor de humedad no válido');
                             }
                           }
                         },
@@ -207,7 +277,7 @@ class _HomeState extends State<Home> {
                               setState(() {
                                 _configModel?.incubationPeriod = newIncPeriod; 
                               });
-                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': newIncPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature,'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
+                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': _configModel?.hash,'incubation_period': newIncPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature, 'max_humidity': _configModel?.maxHumidity, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
                             } else {
                               print('Valor de temperatura no válido');
                             }
@@ -240,9 +310,9 @@ class _HomeState extends State<Home> {
                               setState(() {
                                 _configModel?.hash = newHash; 
                               });
-                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': newHash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature,'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
+                              ApiService().updateConfig({'incubator_name': _configModel?.incubatorName, 'hash': newHash,'incubation_period': _configModel?.incubationPeriod,'max_temperature': _configModel?.maxTemperature,'min_temperature': _configModel?.minTemperature, 'max_humidity': _configModel?.maxHumidity, 'min_humidity': _configModel?.minHumidity, 'passwd': password,'rotation_duration': rotation_duration,'rotation_period': rotation_period,'ssid': ssid,'tray_one_date': tray_one_date,'tray_three_date': tray_three_date,'tray_two_date': tray_two_date}); 
                             } else {
-                              print('Valor de temperatura no válido');
+                              print('Hash no válido');
                             }
                           }
                         },

@@ -7,7 +7,10 @@ String configToJson(Config data) => json.encode(data.toJson());
 class Config {
     int hash;
     int incubationPeriod;
+    String incubatorName;
+    int maxHumidity;
     int maxTemperature;
+    int minHumidity;
     int minTemperature;
     String passwd;
     int rotationDuration;
@@ -20,7 +23,10 @@ class Config {
     Config({
         required this.hash,
         required this.incubationPeriod,
+        required this.incubatorName,
+        required this.maxHumidity,
         required this.maxTemperature,
+        required this.minHumidity,
         required this.minTemperature,
         required this.passwd,
         required this.rotationDuration,
@@ -34,7 +40,10 @@ class Config {
     factory Config.fromJson(Map<String, dynamic> json) => Config(
         hash: json["hash"],
         incubationPeriod: json["incubation_period"],
+        incubatorName: json["incubator_name"],
+        maxHumidity: json["max_humidity"],
         maxTemperature: json["max_temperature"],
+        minHumidity: json["min_humidity"],
         minTemperature: json["min_temperature"],
         passwd: json["passwd"],
         rotationDuration: json["rotation_duration"],
@@ -48,7 +57,10 @@ class Config {
     Map<String, dynamic> toJson() => {
         "hash": hash,
         "incubation_period": incubationPeriod,
+        "incubator_name": incubatorName,
+        "max_humidity": maxHumidity,
         "max_temperature": maxTemperature,
+        "min_humidity": minHumidity,
         "min_temperature": minTemperature,
         "passwd": passwd,
         "rotation_duration": rotationDuration,

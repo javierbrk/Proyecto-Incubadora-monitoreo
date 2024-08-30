@@ -21,6 +21,39 @@ _G.http = {
         print(body)
     end
 }
+_G.wifi = {
+    AUTH_WPA2_PSK = 0,
+    sta = {
+        on = function()
+        end,
+        config = function()
+
+        end,
+        sethostname = function()
+
+        end,
+        connect = function()
+
+        end,
+        disconnect = function()
+        end,
+    },
+    mode = function()
+    end,
+    ap = {
+        setip = function()
+        end,
+        config = function()
+
+        end,
+        on = function()
+        end
+    },
+    start = function()
+    end,
+
+
+}
 _G.gpio = {
     config = function(arg)
         print(arg)
@@ -30,7 +63,19 @@ _G.gpio = {
     end,
     write = function(arg)
         print(arg)
-    end
+    end,
+    read = function (pin)
+        if pin == GPIOREEDS_UP then
+            return 0
+        end
+        if pin == GPIOREEDS_DOWN then
+            return 1
+        end
+        return 1
+    end,
+    trig = function ()
+        
+    end 
 }
 _G.i2c = {
     setup = function(arg)
@@ -110,17 +155,17 @@ describe('send to grafana tests', function()
         spy.on(_G, "print")
         --invoke the method with the desired paramters
         print(
-        "        --invoke the method with the desired paramters  invoke the method with the desired paramters      --invoke the method with the desired paramters ")
+            "        --invoke the method with the desired paramters  invoke the method with the desired paramters      --invoke the method with the desired paramters ")
         create_grafana_message(29, 60, 800, "XX-bme280", "1676515676854775806")
         send_data_grafana(29, 60, 800, "XX-bme280", "1676515676854775806")
         assert.spy(http.post).was.called()
         --verify that moked function was called and printed the desired output.
         assert.spy(_G.print).was.called_with(
-        "mediciones,device=XX-bme280 temp=29,hum=60,press=800 1676515676854775805946888192")
+            "mediciones,device=XX-bme280 temp=29,hum=60,press=800 1676515676854775805946888192")
 
         http.post:revert() -- reverts the stub
         print(
-        "        --invoke the method with the desired paramters  invoke the method with the desired paramters      --invoke the method with the desired paramters ")
+            "        --invoke the method with the desired paramters  invoke the method with the desired paramters      --invoke the method with the desired paramters ")
     end)
 end)
 
@@ -145,9 +190,9 @@ describe('malfunction alert', function()
         temp_control(20, incubator.min_temp, incubator.max_temp)
         assert.spy(incubator.heater).was.called_with(false)
         assert.spy(_G.print).was.called_with(
-        "alertas,device=JJ-RIO4 count=1,message=\"temperature is not changing\" 1676515676854775805946888192")
+            "alertas,device=JJ-RIO4 count=1,message=\"temperature is not changing\" 1676515676854775805946888192")
         assert.spy(_G.print).was.called_with(
-        "alertas,device=JJ-RIO4 count=2,message=\"temperature < M.min_temp and resistor is off\" 1676515676854775805946888192")
+            "alertas,device=JJ-RIO4 count=2,message=\"temperature < M.min_temp and resistor is off\" 1676515676854775805946888192")
         incubator.temperature = 21
         temp_control(21, incubator.min_temp, incubator.max_temp)
     end)
@@ -155,9 +200,9 @@ describe('malfunction alert', function()
         spy.on(incubator, "heater")
         temp = incubator.get_values()
         assert.spy(_G.print).was.called_with(
-        "alertas,device=JJ-RIO4 count=1,message=\"temperature is not changing\" 1676515676854775805946888192")
+            "alertas,device=JJ-RIO4 count=1,message=\"temperature is not changing\" 1676515676854775805946888192")
         assert.spy(_G.print).was.called_with(
-        "alertas,device=JJ-RIO4 count=2,message=\"temperature < M.min_temp and resistor is off\" 1676515676854775805946888192")
+            "alertas,device=JJ-RIO4 count=2,message=\"temperature < M.min_temp and resistor is off\" 1676515676854775805946888192")
         incubator.temperature = 21
         temp_control(21, incubator.min_temp, incubator.max_temp)
     end)
@@ -168,15 +213,53 @@ describe('humidity control tests', function()
     it('humidity cicle control', function()
         spy.on(incubator, "humidifier_switch")
         incubator.temperature = 20
+        incubator.humidifier_max_on_time = 1080 --sec
+        incubator.humidifier_off_time    = 300 -- sec
         for i = 1, 19, 1
         do
             print("------------" .. hum_readings[i] .. " t " .. timesamples[i] .. " bool " .. tostring(hum_status[i]))
             incubator.get_uptime_in_sec = function()
-                    return timesamples[i]
-                end
+                return timesamples[i]
+            end
             hum_control(hum_readings[i], incubator.min_hum, incubator.max_hum)
             --assert.are_equal(expected,passed)
-            assert.are_equal(hum_status[i],incubator.humidifier)
+            assert.are_equal(hum_status[i], incubator.humidifier)
         end
+    end)
+end)
+
+
+describe('rotation control tests', function()
+    it('humrotation cicle control', function()
+        spy.on(gpio, "write")
+        gpio.read = function (pin)
+            if pin == GPIOREEDS_UP then
+                return 0
+            end
+            if pin == GPIOREEDS_DOWN then
+                return 1
+            end
+            return 1
+        end
+        rotate()
+        assert.are_equal(true,incubator.rotate_up)
+        assert.spy(gpio.write).was.called_with(GPIOVOLTEO_UP, 0)
+        assert.spy(gpio.write).was.not_called_with(GPIOVOLTEO_UP, 1)
+        --simulate trigger 
+        trigger_rotation_off(GPIOREEDS_UP,1)
+        
+        gpio.read = function (pin)
+                if pin == GPIOREEDS_UP then
+                    return 1
+                end
+                if pin == GPIOREEDS_DOWN then
+                    return 0
+                end
+                return 1
+            end
+        rotate()
+        assert.are_equal(false,incubator.rotate_up)
+        assert.spy(gpio.write).was.called_with(GPIOVOLTEO_UP, 1)
+
     end)
 end)

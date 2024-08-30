@@ -12,16 +12,20 @@ GATEWAY = ""     -- your gateway
 GPIOBMESDA = 21
 GPIOBMESCL = 22
 
+--inputs
 GPIOREEDS_UP = 5
 GPIOREEDS_DOWN = 18
 --old board
 --GPIOBMESDA = 16
 --GPIOBMESCL = 0
 
+--outputs
 GPIORESISTOR=26
+GPIOHUMID = 33
+
 GPIOVOLTEO_UP = 14
 GPIOVOLTEO_DOWN = 27
-GPIOHUMID = 33
+GPIOVOLTEO_EN = 35
 
 INICIALES = "JJ-RIO4"
 SERVER="http://grafana.altermundi.net:8086/write?db=cto"

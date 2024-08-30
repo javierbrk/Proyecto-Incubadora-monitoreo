@@ -125,7 +125,7 @@ end
 --! @param pin                            number of pin to watch
 ------------------------------------------------------------------------------------
 
-function trigger(gpio, level)
+function trigger_rotation_off(gpio, level)
     gpio.trig(gpio, gpio.INTR_DISABLE)
     rotation_activate = true
     print("[#] rotation working")
@@ -139,8 +139,8 @@ end
 function rotate()
     rotation_activate = false
     --trigger
-    gpio.trig(GPIOREEDS_UP, gpio.INTR_LOW, trigger)
-    gpio.trig(GPIOREEDS_DOWN, gpio.INTR_LOW, trigger)
+    gpio.trig(GPIOREEDS_UP, gpio.INTR_LOW, trigger_rotation_off)
+    gpio.trig(GPIOREEDS_DOWN, gpio.INTR_LOW, trigger_rotation_off)
 
     incubator.rotation_switch(true)
     log.trace("turn rotation on")

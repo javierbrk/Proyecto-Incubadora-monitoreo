@@ -36,7 +36,9 @@ local M = {
 	humidifier_max_on_time = 6, --sec
 	humidifier_off_time    = 15, -- sec
 	hum_turn_on_time       = 0,
-	hum_turn_off_time      = 0
+	hum_turn_off_time      = 0,
+	rotate_up			   = true
+
 }
 
 _G[M.name] = M
@@ -240,13 +242,15 @@ function M.rotation_switch(status)
 			gpio.write(GPIOVOLTEO_UP, 0)
 			gpio.write(GPIOVOLTEO_DOWN, 1)
 		else
-			gpio.write(GPIOVOLTEO_UP, 0)
-			gpio.write(GPIOVOLTEO_DOWN, 1)
+			gpio.write(GPIOVOLTEO_UP, 1)
+			gpio.write(GPIOVOLTEO_DOWN, 0)
 		end 
+		gpio.write(GPIOVOLTEO_EN,1)
 	else
 		--switch off 
 		gpio.write(GPIOVOLTEO_UP, 0)
 		gpio.write(GPIOVOLTEO_DOWN, 0)
+		gpio.write(GPIOVOLTEO_EN,0)
 	end
 end  -- function end
 

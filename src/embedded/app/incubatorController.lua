@@ -112,12 +112,11 @@ end -- read_and_send_data end
 -- ! @function stop_rot                     is responsible for turning off the rotation
 ------------------------------------------------------------------------------------
 function stop_rot()
-    incubator.rotation_switch(false)
-    log.trace("turn rotation off")
     if rotation_activate == true then
         log.trace("[#] rotation working")
     else
-        log.trace("[!] rotation error")
+        log.error("[!] rotation error ----- ")
+        --send_alert_to_grafana
     end
 end
 
@@ -126,22 +125,23 @@ end
 --! @param pin                            number of pin to watch
 ------------------------------------------------------------------------------------
 
-function trigger(gpio, _)
+function trigger(gpio, level)
+    gpio.trig(gpio, gpio.INTR_DISABLE)
     rotation_activate = true
     print("[#] rotation working")
-    gpio.trig(gpio, gpio.INTR_DISABLE)
+    log.fatal("[#] rotation working",gpio,level)
+    incubator.rotation_switch(false)
 end
 
 ------------------------------------------------------------------------------------
 -- ! @function rotate                     is responsible for starting the rotation
 ------------------------------------------------------------------------------------
-
 function rotate()
-    -- config
-    gpio.config( { gpio={GPIOREEDS}, dir=gpio.IN})
     rotation_activate = false
     --trigger
-    --gpio.trig(GPIOREEDS, gpio.INTR_LOW, trigger)
+    gpio.trig(GPIOREEDS_UP, gpio.INTR_LOW, trigger)
+    gpio.trig(GPIOREEDS_DOWN, gpio.INTR_LOW, trigger)
+
     incubator.rotation_switch(true)
     log.trace("turn rotation on")
     stoprotation = tmr.create()

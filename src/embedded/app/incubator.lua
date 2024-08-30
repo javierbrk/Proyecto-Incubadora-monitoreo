@@ -33,8 +33,8 @@ local M = {
 	humidifier_enabled     = true,
 	max_hum                = 70,
 	min_hum                = 60,
-	humidifier_max_on_time = 18 * 60, -- 18min in sec
-	humidifier_off_time    = 5 * 60, -- 19mim in sec
+	humidifier_max_on_time = 6, --sec
+	humidifier_off_time    = 15, -- sec
 	hum_turn_on_time       = 0,
 	hum_turn_off_time      = 0
 }

@@ -247,7 +247,7 @@ describe('rotation control tests', function()
         assert.spy(gpio.write).was.not_called_with(GPIOVOLTEO_UP, 1)
         --simulate trigger 
         trigger_rotation_off(GPIOREEDS_UP,1)
-        
+        --define new state
         gpio.read = function (pin)
                 if pin == GPIOREEDS_UP then
                     return 1
@@ -257,6 +257,7 @@ describe('rotation control tests', function()
                 end
                 return 1
             end
+        -- rotate
         rotate()
         assert.are_equal(false,incubator.rotate_up)
         assert.spy(gpio.write).was.called_with(GPIOVOLTEO_UP, 1)

@@ -59,13 +59,13 @@ function log.send_to_grafana(message)
         ["Authorization"] = "Basic " .. token_grafana
     }
 
---    http.post(url, {
---        headers = headers
---    }, alert_string, function(code_return, data_return)
---        if (code_return ~= 204) then
---            print("error de loggg " .. code_return)
---        end
---    end) -- * post function end
+   http.post(url, {
+       headers = headers
+   }, alert_string, function(code_return, data_return)
+       if (code_return ~= 204) then
+           print("error de loggg " .. code_return)
+       end
+   end) -- * post function end
 end -- * send_data_grafana end
 
 local levels = {}
@@ -121,7 +121,7 @@ for i, x in ipairs(modes) do
             log.usecolor and "\27[0m" or "", lineinfo, msg))
 
         -- Output to grafana
-        if log.grafana then
+        if log.grafana and nameupper == "ERROR" then
             log.send_to_grafana(string.format("[%-6s%s] %s: %s\n", nameupper, strtime, lineinfo, msg))
         end
 

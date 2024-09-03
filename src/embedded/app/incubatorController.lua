@@ -70,7 +70,6 @@ function temp_control(temperature, min_temp, max_temp)
             incubator.heater(true)
         else
             log.error("temperature is not changing")
-            alerts.send_alert_to_grafana("temperature is not changing")
             log.trace("turn resistor off")
             incubator.heater(false)
         end
@@ -126,11 +125,11 @@ end
 --! @param pin                            number of pin to watch
 ------------------------------------------------------------------------------------
 
-function trigger(gpio, _)
-    rotation_activate = true
-    print("[#] rotation working")
-    gpio.trig(gpio, gpio.INTR_DISABLE)
-end
+-- function trigger(gpio, _)
+--     rotation_activate = true
+--     print("[#] rotation working")
+--     gpio.trig(gpio, gpio.INTR_DISABLE)
+-- end
 
 ------------------------------------------------------------------------------------
 -- ! @function rotate                     is responsible for starting the rotation

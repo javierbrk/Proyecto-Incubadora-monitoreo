@@ -112,8 +112,8 @@ end -- end function
 ------------------------------------------------------------------------------------
 
 function wifi_connect_event(ev, info)
-	print(string.format("conecction to AP %s established!", tostring(info.ssid)))
-	print("Waiting for IP address...")
+	log.trace(string.format("conecction to AP %s established!", tostring(info.ssid)))
+	log.trace("Waiting for IP address...")
 
 	if disconnect_ct ~= nil then
 		disconnect_ct = nil
@@ -137,9 +137,9 @@ function wifi_got_ip_event(ev, info)
 	ONLINE = 1
 	IPADD = info.ip
 	IPGW = info.gw
-	print("NodeMCU IP config:", info.ip, "netmask", info.netmask, "gw", info.gw)
-	print("Startup will resume momentarily, you have 3 seconds to abort.")
-	print("Waiting...")
+	log.trace("NodeMCU IP config:", info.ip, "netmask", info.netmask, "gw", info.gw)
+	log.trace("Startup will resume momentarily, you have 3 seconds to abort.")
+	log.trace("Waiting...")
 	print(time.get(), " hora vieja")
 	if (not time.ntpenabled()) then
 		time.initntp("pool.ntp.org")
@@ -168,8 +168,8 @@ function wifi_disconnect_event(ev, info)
 	end
 
 	local total_tries = 10
-	print("\nWiFi connection to AP(" .. info.ssid .. ") has failed!")
-	print("Disconnect reason: " .. info.reason)
+	log.trace("\nWiFi connection to AP(" .. info.ssid .. ") has failed!")
+	log.trace("Disconnect reason: " .. info.reason)
 
 	if disconnect_ct == nil then
 		disconnect_ct = 1
@@ -178,13 +178,13 @@ function wifi_disconnect_event(ev, info)
 	end -- if end
 
 	if disconnect_ct < total_tries then
-		print("Retrying connection...(attempt " .. (disconnect_ct + 1) .. " of " .. total_tries .. ")")
+		log.trace("Retrying connection...(attempt " .. (disconnect_ct + 1) .. " of " .. total_tries .. ")")
 		wifi.sta.connect()
 	else
 		wifi.sta.disconnect()
 
 		if W.old_ssid and W.old_passwd then
-			print("Attempting to connect with previous credentials")
+			log.trace("Attempting to connect with previous credentials")
 			W:set_new_ssid(W.old_ssid)
 			W:set_passwd(W.old_passwd)
 			station_cfg = {
@@ -197,7 +197,7 @@ function wifi_disconnect_event(ev, info)
 			W.old_passwd = nil
 		end -- if end 
 
-		print("Reattempting WiFi connection in 10 seconds...")
+		log.trace("Reattempting WiFi connection in 10 seconds...")
 		mytimer = tmr.create()
 		mytimer:register(10000, tmr.ALARM_SINGLE, configwifi)
 		mytimer:start()
@@ -248,7 +248,7 @@ function W:on_change(new_config_table)
 end -- function end
 
 configwifi()
-print("Connecting to WiFi access point...")
+log.trace("Connecting to WiFi access point...")
 
 
 return W

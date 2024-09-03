@@ -41,7 +41,7 @@ end
 -------------------------------------------------------------------------------------
 
 function configurator:create_config_file()
-  print("[!] Failed to read JSON file, creating a new one")
+  log.error("Failed to read JSON file, creating a new one")
   new_file = io.open("config.json", "w")
   new_file:write(
     '{"rotation_duration":5000,"rotation_period":360000,"min_temperature":37.3,"max_temperature":37.8,"ssid":"incubator","passwd":"1234554321"}')

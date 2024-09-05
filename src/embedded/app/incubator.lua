@@ -36,7 +36,15 @@ local M = {
 	humidifier_max_on_time = 6, --sec
 	humidifier_off_time    = 15, -- sec
 	hum_turn_on_time       = 0,
-	hum_turn_off_time      = 0
+	hum_turn_off_time      = 0,
+	tray_one_date = 0,
+	tray_two_date = 0,
+	tray_three_date = 0,
+	incubation_period = 0,
+	hash = 1235,
+	incubator_name = "incubator_1"
+
+	
 }
 
 _G[M.name] = M
@@ -253,8 +261,8 @@ function M.set_max_temp(new_max_temp)
 		return true
 	else
 		return false
-	end
-end
+	end -- if end
+end -- function end
 
 -------------------------------------
 -- @function set_min_temp	modify the actual min_temp from API
@@ -270,8 +278,8 @@ function M.set_min_temp(new_min_temp)
 		return true
 	else
 		return false
-	end
-end
+	end -- if end 
+end -- function end
 
 -------------------------------------
 -- @function set_rotation_period	modify the actual period time from API
@@ -286,8 +294,8 @@ function M.set_rotation_period(new_period_time)
 		return true
 	else
 		return false
-	end
-end
+	end -- if end
+end -- function end 
 
 -------------------------------------
 -- @function set_rotation_duration	modify the actual duration time from API
@@ -302,9 +310,116 @@ function M.set_rotation_duration(new_rotation_duration)
 		return true
 	else
 		return false
+	end -- if end
+end --function end 
+
+-------------------------------------------------------------------------------------------------
+-- @function set_tray_*_date
+-- Ensures that new_tray_one_date is exactly a string of 10 digits before setting the value.
+-- @param	new_tray_*_date <-- Unix Time format
+-------------------------------------------------------------------------------------------------
+function M.set_tray_one_date(new_tray_one_date)
+	if type(new_tray_one_date) == "number" and #tostring(new_tray_one_date) == 10 then
+		M.tray_one_date = new_tray_one_date
+		return true
+	else
+		return false
+	end -- if end
+end     -- function end
+
+function M.set_tray_two_date(new_tray_two_date)
+	if type(new_tray_two_date) == "number" and #tostring(new_tray_two_date) == 10 then
+		M.tray_two_date = new_tray_two_date
+		return true
+	else
+		return false
+	end -- if end
+end     -- function end
+
+function M.set_tray_three_date(new_tray_three_date)
+	if type(new_tray_three_date) == "number" and #tostring(new_tray_three_date) == 10 then
+		M.tray_three_date = new_tray_three_date
+		return true
+	else
+		return false
+	end --if end
+end     -- function end
+
+-------------------------------------------------------------------------------------------------
+-- @function set_incubation_period
+-- Ensures that new_tray_one_date is exactly a string of 10 digits before setting the value.
+-- @param	new_tray_*_date <-- Unix Time format
+-------------------------------------------------------------------------------------------------
+
+function M.set_incubation_period(new_incubation_period)
+	if type(new_incubation_period) == "number" and #tostring(new_incubation_period) == 10 then
+		M.incubation_period = new_incubation_period
+		return true
+	else
+		return false
+	end -- if end
+end     -- function end
+
+-------------------------------------------------------------------------------------------------
+-- @function set_hash
+-- varifies if the input string is at most 20 characters long and sets it as the hash if valid.
+-- @param	new_hash
+-------------------------------------------------------------------------------------------------
+
+function M.set_hash(new_hash)
+	if type(new_hash) == "string" and #new_hash <= 20 then
+		M.hash = new_hash
+		return true
+	else
+		return false
+	end -- if end
+end     -- function end
+
+-------------------------------------------------------------------------------------------------
+-- @function set_incubator_name
+-- set the name oif incubator 
+-- @param	new_incubator_name
+-------------------------------------------------------------------------------------------------
+function M.set_incubator_name(new_incubator_name)
+if type(new_incubator_name) == "string" and #new_incubator_name <= 20 then
+		M.incubator_name = new_incubator_name
+		return true
+else
+		return false
+	end -- if end 
+end -- function end
+
+-------------------------------------------------------------------------------------------------
+-- @function set_max_humidity
+-- set the max humidity parameter 
+-- @param	new_max_hum
+-------------------------------------------------------------------------------------------------
+function M.set_max_humidity(new_max_hum)
+	if new_max_hum ~= nil and new_max_hum >= 0
+			and new_max_hum >= M.min_hum
+			and tostring(new_max_hum):sub(1, 1) ~= '-'
+			and type(new_max_hum) == "number" then
+		M.max_hum = new_max_hum
+		return true
+	else
+		return false
 	end
 end
-
-
+-------------------------------------------------------------------------------------------------
+-- @function set_min_humidity
+-- set the min humidity parameter 
+-- @param	new_min_hum
+-------------------------------------------------------------------------------------------------
+function M.set_min_humidity(new_min_hum)
+	if new_min_hum ~= nil and new_min_hum >= 0
+		and new_min_hum <= M.max_hum
+		and tostring(new_min_hum):sub(1, 1) ~= '-'
+		and type(new_min_hum) == "number" then
+	M.min_hum = new_min_hum
+			return true
+		else
+			return false
+		end
+end
 
 return M

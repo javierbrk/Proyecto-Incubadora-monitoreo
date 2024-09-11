@@ -243,9 +243,8 @@ function W:on_change(new_config_table)
 		wifi.sta.connect()
 	else
 		-- try reconnect
-		-- wifi.sta.disconnect()
-		-- wifi.sta.connect()
-		-- ! Esto esta comentando por un bug en las pruebas
+		wifi.sta.disconnect()
+	 	wifi.sta.connect()
 		return
 	end -- else end
 end -- function end

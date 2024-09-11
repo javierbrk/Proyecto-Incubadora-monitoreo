@@ -43,7 +43,6 @@ end
 function configurator:create_config_file()
 	log.trace("Creating a new config file")
 	local new_file = io.open("config.json", "w")
-	if new_file then
 			local config = {
 					rotation_duration = 5000,
 					rotation_period = 3600000,
@@ -60,9 +59,6 @@ function configurator:create_config_file()
 			}
 			new_file:write(sjson.encode(config))
 			new_file:close()
-	else
-			log.error("Failed to create new config file")
-	end
 end
 
 -------------------------------------------------------------------------------------
@@ -100,11 +96,11 @@ function configurator:load_objects_data(new_config_table)
     elseif param == "rotation_period" then
       status.rotation_period = incubator.set_rotation_period(tonumber(value))
 		elseif param == "tray_one_date" then
-			status.tray_one_date = incubator.set_tray_one_date(tonumber(value))
+			status.tray_one_date = incubator.set_tray_date("one",tonumber(value))
 		elseif param == "tray_two_date" then
-			status.tray_two_date = incubator.set_tray_two_date(tonumber(value))
+			status.tray_two_date = incubator.set_tray_date("two",tonumber(value))
 		elseif param == "tray_three_date" then
-			status.tray_three_date = incubator.set_tray_three_date(tonumber(value))
+			status.tray_three_date = incubator.set_tray_date("three",tonumber(value))
 		elseif param == "incubation_period" then 
 			status.incubation_period = incubator.set_incubation_period(tonumber(value))
 		elseif param == "hash" then 

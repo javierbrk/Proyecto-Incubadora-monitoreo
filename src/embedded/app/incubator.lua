@@ -313,38 +313,28 @@ function M.set_rotation_duration(new_rotation_duration)
 	end -- if end
 end --function end 
 
--------------------------------------------------------------------------------------------------
--- @function set_tray_*_date
--- Ensures that new_tray_one_date is exactly a string of 10 digits before setting the value.
--- @param	new_tray_*_date <-- Unix Time format
--------------------------------------------------------------------------------------------------
-function M.set_tray_one_date(new_tray_one_date)
-	if type(new_tray_one_date) == "number" and #tostring(new_tray_one_date) == 10 then
-		M.tray_one_date = new_tray_one_date
-		return true
-	else
-		return false
-	end -- if end
-end     -- function end
-
-function M.set_tray_two_date(new_tray_two_date)
-	if type(new_tray_two_date) == "number" and #tostring(new_tray_two_date) == 10 then
-		M.tray_two_date = new_tray_two_date
-		return true
-	else
-		return false
-	end -- if end
-end     -- function end
-
-function M.set_tray_three_date(new_tray_three_date)
-	if type(new_tray_three_date) == "number" and #tostring(new_tray_three_date) == 10 then
-		M.tray_three_date = new_tray_three_date
-		return true
-	else
-		return false
-	end --if end
-end     -- function end
-
+local tray_map = {
+	one = "tray_one_date",
+	two = "tray_two_date",
+	three = "tray_three_date"
+}
+---------------------------------------------------------------------------------------------------
+-- @function set_tray_date
+-- Ensures that new_tray_date is exactly a string of 10 digits before setting the value.
+-- @param tray_number string: "one", "two", or "three"
+-- @param new_tray_date number: Unix Time format
+-- @return boolean: true if the date was set successfully, false otherwise
+---------------------------------------------------------------------------------------------------
+function M.set_tray_date(tray_number, new_tray_date)
+	if type(new_tray_date) == "number" and #tostring(new_tray_date) == 10 then
+			local tray_var = tray_map[tray_number]
+			if tray_var then
+					M[tray_var] = new_tray_date
+					return true
+			end
+	end
+	return false
+end
 -------------------------------------------------------------------------------------------------
 -- @function set_incubation_period
 -- Ensures that new_tray_one_date is exactly a string of 10 digits before setting the value.
@@ -396,7 +386,7 @@ end -- function end
 -------------------------------------------------------------------------------------------------
 function M.set_max_humidity(new_max_hum)
 	if new_max_hum ~= nil and new_max_hum >= 0
-			and new_max_hum >= M.min_hum
+			and new_max_hum > M.min_hum
 			and tostring(new_max_hum):sub(1, 1) ~= '-'
 			and type(new_max_hum) == "number" then
 		M.max_hum = new_max_hum
@@ -412,7 +402,7 @@ end
 -------------------------------------------------------------------------------------------------
 function M.set_min_humidity(new_min_hum)
 	if new_min_hum ~= nil and new_min_hum >= 0
-		and new_min_hum <= M.max_hum
+		and new_min_hum < M.max_hum
 		and tostring(new_min_hum):sub(1, 1) ~= '-'
 		and type(new_min_hum) == "number" then
 	M.min_hum = new_min_hum

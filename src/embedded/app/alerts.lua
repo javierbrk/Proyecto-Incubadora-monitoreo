@@ -35,7 +35,7 @@ function alerts.send_alert_to_grafana(message)
 	http.post(url, {headers = headers}, alert_string,
 		function(code_return, data_return)
 			if (code_return ~= 204) then
-				print(" " .. code_return)
+				log.warn("Fail to send Alert to Grafana code return: " .. code_return)
 			end
 	end) -- * post function end
 end -- * send_data_grafana end

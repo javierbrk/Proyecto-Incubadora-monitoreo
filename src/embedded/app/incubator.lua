@@ -28,10 +28,15 @@ local M = {
 	min_temp               = 37.3,
 	is_sensorok            = false,
 	is_simulate_temp_local = false,
-	rotation_duration        = 5000, -- time in ms
-	rotation_period      = 3600000, -- time in ms
-	-- ssid = nil, 
-	-- passwd = nil
+	rotation_duration      = 5000, -- time in ms
+	rotation_period        = 3600000, -- time in ms
+	humidifier_enabled     = true,
+	max_hum                = 70,
+	min_hum                = 60,
+	humidifier_max_on_time = 6, --sec
+	humidifier_off_time    = 15, -- sec
+	hum_turn_on_time       = 0,
+	hum_turn_off_time      = 0
 }
 
 _G[M.name] = M
@@ -48,15 +53,18 @@ end
 
 function M.init_values()
 	M.startbme()
-	gpio.config({ gpio = { GPIOVOLTEO, GPIORESISTOR, 13, 12 }, dir = gpio.OUT })
-	gpio.set_drive(13, gpio.DRIVE_3)
-	gpio.set_drive(GPIOVOLTEO, gpio.DRIVE_3)
+	gpio.config({ gpio = { GPIORESISTOR, GPIOVOLTEO_O1, GPIOVOLTEO_O2, GPIOHUMID }, dir = gpio.OUT })
+
+	gpio.set_drive(GPIOVOLTEO_O1, gpio.DRIVE_3)
+	gpio.set_drive(GPIOVOLTEO_O2, gpio.DRIVE_3)
+	gpio.set_drive(GPIOHUMID, gpio.DRIVE_3)
 	gpio.set_drive(GPIORESISTOR, gpio.DRIVE_3)
-	gpio.set_drive(12, gpio.DRIVE_3)
-	gpio.write(13, 1)
-	gpio.write(GPIOVOLTEO, 1)
+	
+	--revisar estos valores inicliales
+	gpio.write(GPIOVOLTEO_O1, 1)
+	gpio.write(GPIOVOLTEO_O2, 1)
+	gpio.write(GPIOHUMID, 1)
 	gpio.write(GPIORESISTOR, 1)
-	gpio.write(12, 1)
 end -- end function
 
 -------------------------------------
@@ -150,17 +158,69 @@ function M.assert_conditions()
 	end -- if is_testing
 end   --end fucition
 
+function M.get_uptime_in_sec()
+	local high_bytes, _ = node.uptime()
+	return tonumber((high_bytes / 1000000))
+end
+
 -------------------------------------
 -- @function humidifier 			Activates or deactivates humidifier
 --
 -- @param status "true" 		  increments humidity, "false" humidity "decrements"
 -------------------------------------
-function M.humidifier(status)
-	humidifier = status
-	if status then
-		gpio.write(14, 0)
+function M.humidifier_switch(status)
+	local current_time = M.get_uptime_in_sec()
+	log.warn("humidifier current_time ".. current_time)
+
+	if M.humidifier_enabled then
+		log.warn("humidifier enabled")
+		if status then -- encender humidifier
+			if (not M.humidifier) then -- estaba apagado
+				log.warn("humidifier was off... turning on ")
+
+				--estaba apagado y lo prendo
+				M.hum_turn_on_time = current_time
+				M.humidifier = status
+			else
+				--estaba pendido y sigue
+				log.warn("humidifier was on... turned on" .. M.hum_turn_on_time)
+
+				log.warn("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
+				log.warn("humidifier was on... turning on.. time left " ..
+				(M.humidifier_max_on_time - (current_time - M.hum_turn_on_time)))
+				--verificar el tiempo maximo
+				if ((current_time - M.hum_turn_on_time) > M.humidifier_max_on_time) then
+					M.humidifier_enabled = false
+					M.humidifier = false
+					M.hum_turn_off_time = current_time
+					log.error("humidifier disabled beacuse time greater than max")
+				end
+			end
+		end
+	else --humidifier disabled
+		log.error("humidifier disabled ")
+		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
+			M.humidifier_enabled = true
+			log.warn("humidifier enabled time out expired")
+			if status then
+				if (not M.humidifier) then
+					log.warn("humidifier was off... turning on ")
+					--estaba apagado y lo prendo
+					M.hum_turn_on_time = current_time
+					M.humidifier = status
+				end
+			end
+		end
+	end
+
+	if status and M.humidifier_enabled then
+		gpio.write(GPIOHUMID, 1)
+		log.warn("humidifier pin turned on--------------------")
 	else
-		gpio.write(14, 1)
+		M.humidifier = false
+		gpio.write(GPIOHUMID, 0)
+		log.warn("humidifier pin turned off--------------------")
+
 	end -- if end
 end  -- function end
 
@@ -169,12 +229,12 @@ end  -- function end
 --
 -- @param status "true" activates rotation, "false" stops rotation
 -------------------------------------
-function M.rotation(status)
-	rotation = status
+function M.rotation_switch(status)
+	M.rotation = status
 	if status then
-		gpio.write(GPIOVOLTEO, 0)
+		gpio.write(GPIOVOLTEO_O1, 0)
 	else
-		gpio.write(GPIOVOLTEO, 1)
+		gpio.write(GPIOVOLTEO_O1, 1)
 	end -- if end
 	--todo: implement logger for debug
 end  -- function end
@@ -245,32 +305,6 @@ function M.set_rotation_duration(new_rotation_duration)
 	end
 end
 
--- -----------------------------------
--- @function set_new_ssid	modify the actual ssid WiFi from API
 
--- @param	new_ssid comes from json received from API
--- -----------------------------------
-function M.set_new_ssid(new_ssid)
-	if new_ssid ~= nil then
-		M.ssid = new_ssid
-		return true
-	else
-		return false
-	end
-end
-
--------------------------------------
--- @function set_passwd	modify the actual ssid WiFi from API
---
--- @param	new_passwd comes from json received from API
--------------------------------------
-function M.set_passwd(new_passwd)
-	if new_passwd ~= nil then
-		M.passwd = new_passwd
-		return true
-	else
-		return false
-	end
-end
 
 return M

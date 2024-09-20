@@ -70,7 +70,6 @@ function temp_control(temperature, min_temp, max_temp)
             incubator.heater(true)
         else
             log.error("temperature is not changing")
-            alerts.send_alert_to_grafana("temperature is not changing")
             log.trace("turn resistor off")
             incubator.heater(false)
         end
@@ -80,9 +79,22 @@ function temp_control(temperature, min_temp, max_temp)
     end -- end if
 end     -- end function
 
+function hum_control(hum, min, max)
+    log.trace(" Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier))
+    if hum <= min then
+        log.trace("turn hum on")
+        incubator.humidifier_switch(true)
+    elseif hum >= max then
+        log.trace("turn hum off")
+        incubator.humidifier_switch(false)
+    end -- end if
+end     -- end function
+
+
 function read_and_control()
     temp, hum, pres = incubator.get_values()
     log.trace(" t:" .. temp .. " h:" .. hum .. " p:" .. pres)
+    hum_control(hum, incubator.min_hum, incubator.max_hum)
     temp_control(temp, incubator.min_temp, incubator.max_temp)
 end -- end function
 
@@ -99,7 +111,7 @@ end -- read_and_send_data end
 -- ! @function stop_rot                     is responsible for turning off the rotation
 ------------------------------------------------------------------------------------
 function stop_rot()
-    incubator.rotation(false)
+    incubator.rotation_switch(false)
     log.trace("turn rotation off")
     if rotation_activate == true then
         log.trace("[#] rotation working")
@@ -113,11 +125,11 @@ end
 --! @param pin                            number of pin to watch
 ------------------------------------------------------------------------------------
 
-function trigger(gpio, _)
-    rotation_activate = true
-    print("[#] rotation working")
-    gpio.trig(gpio, gpio.INTR_DISABLE)
-end
+-- function trigger(gpio, _)
+--     rotation_activate = true
+--     print("[#] rotation working")
+--     gpio.trig(gpio, gpio.INTR_DISABLE)
+-- end
 
 ------------------------------------------------------------------------------------
 -- ! @function rotate                     is responsible for starting the rotation
@@ -128,8 +140,8 @@ function rotate()
     gpio.config( { gpio={GPIOREEDS}, dir=gpio.IN})
     rotation_activate = false
     --trigger
-    gpio.trig(GPIOREEDS, gpio.INTR_LOW, trigger)
-    incubator.rotation(true)
+    --gpio.trig(GPIOREEDS, gpio.INTR_LOW, trigger)
+    incubator.rotation_switch(true)
     log.trace("turn rotation on")
     stoprotation = tmr.create()
     stoprotation:register(incubator.rotation_duration, tmr.ALARM_SINGLE, stop_rot)

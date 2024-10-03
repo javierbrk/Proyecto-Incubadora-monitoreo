@@ -1,8 +1,8 @@
 -- This file is only a placeholder.
 -- Put your credentials here, and 
 -- rename the file to remove the underscore.
-SSID = "INTI"
-PASSWORD = ""
+SSID = "ChinaNet-POLLO2_0"
+PASSWORD = "1234554321"
 TIMEZONE = "UTC+3"
 
 IP_ADDR = ""         -- static IP
@@ -12,17 +12,22 @@ GATEWAY = ""     -- your gateway
 GPIOBMESDA = 21
 GPIOBMESCL = 22
 
-GPIOREEDS = 36
+--inputs
+GPIOREEDS_UP = 35
+GPIOREEDS_DOWN = 34
 --old board
 --GPIOBMESDA = 16
 --GPIOBMESCL = 0
 
+--outputs
 GPIORESISTOR=26
-GPIOVOLTEO_O1 = 14
-GPIOVOLTEO_O2 = 27
 GPIOHUMID = 33
 
-INICIALES = "JJ-RIO4"
+GPIOVOLTEO_UP = 2
+GPIOVOLTEO_DOWN = 15
+GPIOVOLTEO_EN = 13
+
+INICIALES = "JC"
 SERVER="http://grafana.altermundi.net:8086/write?db=cto"
 
 --critical configurations resitor must be turned off

@@ -29,14 +29,16 @@ local M = {
 	is_sensorok            = false,
 	is_simulate_temp_local = false,
 	rotation_duration      = 5000, -- time in ms
-	rotation_period        = 3600000, -- time in ms
+	rotation_period        = 3000,--3600000, -- time in ms
 	humidifier_enabled     = true,
 	max_hum                = 70,
 	min_hum                = 60,
 	humidifier_max_on_time = 6, --sec
 	humidifier_off_time    = 15, -- sec
 	hum_turn_on_time       = 0,
-	hum_turn_off_time      = 0
+	hum_turn_off_time      = 0,
+	rotate_up			   = true
+
 }
 
 _G[M.name] = M
@@ -53,18 +55,26 @@ end
 
 function M.init_values()
 	M.startbme()
-	gpio.config({ gpio = { GPIORESISTOR, GPIOVOLTEO_O1, GPIOVOLTEO_O2, GPIOHUMID }, dir = gpio.OUT })
+	gpio.config({ gpio = { GPIORESISTOR, GPIOVOLTEO_UP, GPIOVOLTEO_DOWN, GPIOHUMID, GPIOVOLTEO_EN}, dir = gpio.OUT })
+	-- config inputs 
+  gpio.config( { gpio={GPIOREEDS_DOWN,GPIOREEDS_UP}, dir=gpio.IN,pull = gpio.PULL_UP})
 
-	gpio.set_drive(GPIOVOLTEO_O1, gpio.DRIVE_3)
-	gpio.set_drive(GPIOVOLTEO_O2, gpio.DRIVE_3)
+	gpio.set_drive(GPIOVOLTEO_UP, gpio.DRIVE_3)
+	gpio.set_drive(GPIOVOLTEO_DOWN, gpio.DRIVE_3)
 	gpio.set_drive(GPIOHUMID, gpio.DRIVE_3)
 	gpio.set_drive(GPIORESISTOR, gpio.DRIVE_3)
+	gpio.set_drive(GPIOVOLTEO_EN, gpio.DRIVE_3)
+
+	
 	
 	--revisar estos valores inicliales
-	gpio.write(GPIOVOLTEO_O1, 1)
-	gpio.write(GPIOVOLTEO_O2, 1)
+	gpio.write(GPIOVOLTEO_UP, 1)
+	gpio.write(GPIOVOLTEO_DOWN, 1)
 	gpio.write(GPIOHUMID, 1)
 	gpio.write(GPIORESISTOR, 1)
+	gpio.write(GPIOVOLTEO_EN, 0)
+
+	
 end -- end function
 
 -------------------------------------
@@ -232,12 +242,38 @@ end  -- function end
 function M.rotation_switch(status)
 	M.rotation = status
 	if status then
-		gpio.write(GPIOVOLTEO_O1, 0)
+		--switch on
+		M.rotation_change_dir()
+		if M.rotate_up then
+			gpio.write(GPIOVOLTEO_UP, 0)
+			gpio.write(GPIOVOLTEO_DOWN, 1)
+		else
+			gpio.write(GPIOVOLTEO_UP, 1)
+			gpio.write(GPIOVOLTEO_DOWN, 0)
+		end 
+		gpio.write(GPIOVOLTEO_EN,1)
 	else
-		gpio.write(GPIOVOLTEO_O1, 1)
-	end -- if end
-	--todo: implement logger for debug
+		--switch off 
+		gpio.write(GPIOVOLTEO_UP, 0)
+		gpio.write(GPIOVOLTEO_DOWN, 0)
+		gpio.write(GPIOVOLTEO_EN,0)
+	end
 end  -- function end
+
+function M.rotation_change_dir()
+	local upvalue = gpio.read(GPIOREEDS_UP)
+	local downvalue = gpio.read(GPIOREEDS_DOWN)
+	if (upvalue == 0 and downvalue == 1) then
+		M.rotate_up = false
+	elseif (upvalue == 1 and downvalue == 0) then
+		M.rotate_up = true
+	else
+		--something is wrong, invert rotation
+		log.error ("gpio reeds not active inverting rotation just in case")
+		M.rotate_up = 	not	M.rotate_up
+	end
+end
+
 
 -------------------------------------
 -- @function set_max_temp	modify the actual max_temp from API

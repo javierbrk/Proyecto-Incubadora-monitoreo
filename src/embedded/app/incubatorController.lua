@@ -112,6 +112,7 @@ end -- read_and_send_data end
 -- ! @function stop_rot                     is responsible for turning off the rotation
 ------------------------------------------------------------------------------------
 function stop_rot()
+    incubator.rotation_switch(false)
     if rotation_activate == true then
         log.trace("[#] rotation working :)")
     else
@@ -164,7 +165,7 @@ function rotate()
     incubator.rotation_switch(true)
     log.trace("turn rotation on-------------------------------")
     stoprotation = tmr.create()
-    stoprotation:register(15000, tmr.ALARM_SINGLE, stop_rot)
+    stoprotation:register(incubator.rotation_duration, tmr.ALARM_SINGLE, stop_rot)
     stoprotation:start()
 end
 
@@ -184,20 +185,19 @@ incubator.enable_testing(false)
 ------------------------------------------------------------------------------------
 -- ! timers
 ------------------------------------------------------------------------------------
--- local send_data_timer = tmr.create()
--- send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
--- send_data_timer:start()
+local send_data_timer = tmr.create()
+send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
+send_data_timer:start()
 
--- local temp_control_timer = tmr.create()
--- temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
--- temp_control_timer:start()
+local temp_control_timer = tmr.create()
+temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
+temp_control_timer:start()
 
 local rotation = tmr.create()
---rotation:register(20000, tmr.ALARM_AUTO, rotate)
-rotation:register(30000, tmr.ALARM_AUTO, rotate)
+rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
 rotation:start()
 
--- local send_heap_uptime = tmr.create()
--- send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
--- send_heap_uptime:start()
+local send_heap_uptime = tmr.create()
+send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
+send_heap_uptime:start()
 

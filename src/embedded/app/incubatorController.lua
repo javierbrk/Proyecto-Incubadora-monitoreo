@@ -113,9 +113,9 @@ end -- read_and_send_data end
 ------------------------------------------------------------------------------------
 function stop_rot()
     if rotation_activate == true then
-        log.trace("[#] rotation working")
+        log.trace("[#] rotation working :)")
     else
-        log.error("[!] rotation error ----- ")
+        log.error("[!] rotation error ----- sensors not activated after rotation")
         --send_alert_to_grafana
     end
 end
@@ -126,11 +126,18 @@ end
 ------------------------------------------------------------------------------------
 
 function trigger_rotation_off(pin, level)
-    gpio.trig(pin, gpio.INTR_DISABLE)
-    rotation_activate = true
-    print("[#] rotation working")
-    log.fatal("[#] rotation working",pin,level)
-    incubator.rotation_switch(false)
+    if(level==0) then
+        if gpio.read(pin) == 1 then
+            log.trace("ruidoooo ")
+            return
+        else
+            gpio.trig(pin, gpio.INTR_DISABLE)
+            rotation_activate = true
+            log.trace("[#] rotation working pin activated ",pin,level)
+            incubator.rotation_switch(false)
+        end
+    end
+   
 end
 
 ------------------------------------------------------------------------------------
@@ -138,22 +145,26 @@ end
 ------------------------------------------------------------------------------------
 function rotate()
     rotation_activate = false
-    log.trace("turn rotation on-------------------------------")
+    log.trace("rotation-------------------------------")
     -- only subscribe to the interrupts if state is up
     -- Check if both pins are in the "up" state (assuming 1 is "up")
     if gpio.read(GPIOREEDS_UP) == 1 then
         -- Subscribe to interrupts
         gpio.trig(GPIOREEDS_UP, gpio.INTR_DOWN, trigger_rotation_off)
+    else
+        gpio.trig(GPIOREEDS_UP, gpio.INTR_DISABLE)
     end
 
     if gpio.read(GPIOREEDS_DOWN) == 1 then
         gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DOWN, trigger_rotation_off)
+    else
+        gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DISABLE)
     end
 
     incubator.rotation_switch(true)
     log.trace("turn rotation on-------------------------------")
     stoprotation = tmr.create()
-    stoprotation:register(incubator.rotation_duration, tmr.ALARM_SINGLE, stop_rot)
+    stoprotation:register(15000, tmr.ALARM_SINGLE, stop_rot)
     stoprotation:start()
 end
 
@@ -183,7 +194,7 @@ incubator.enable_testing(false)
 
 local rotation = tmr.create()
 --rotation:register(20000, tmr.ALARM_AUTO, rotate)
-rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
+rotation:register(30000, tmr.ALARM_AUTO, rotate)
 rotation:start()
 
 -- local send_heap_uptime = tmr.create()

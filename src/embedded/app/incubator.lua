@@ -28,8 +28,8 @@ local M = {
 	min_temp               = 37.3,
 	is_sensorok            = false,
 	is_simulate_temp_local = false,
-	rotation_duration      = 5000, -- time in ms
-	rotation_period        = 3000,--3600000, -- time in ms
+	rotation_duration      = 50000, -- time in ms
+	rotation_period        = 3600000, -- time in ms
 	humidifier_enabled     = true,
 	max_hum                = 70,
 	min_hum                = 60,
@@ -245,15 +245,21 @@ function M.rotation_switch(status)
 		--switch on
 		M.rotation_change_dir()
 		if M.rotate_up then
+			log.trace("rotating upppppp")
 			gpio.write(GPIOVOLTEO_UP, 0)
 			gpio.write(GPIOVOLTEO_DOWN, 1)
 		else
+			log.trace("rotating downnn")
+
 			gpio.write(GPIOVOLTEO_UP, 1)
 			gpio.write(GPIOVOLTEO_DOWN, 0)
 		end 
+		log.trace("rotating turning onnnn")
 		gpio.write(GPIOVOLTEO_EN,1)
 	else
 		--switch off 
+		log.trace("turning offfffffff")
+
 		gpio.write(GPIOVOLTEO_UP, 0)
 		gpio.write(GPIOVOLTEO_DOWN, 0)
 		gpio.write(GPIOVOLTEO_EN,0)
@@ -263,6 +269,8 @@ end  -- function end
 function M.rotation_change_dir()
 	local upvalue = gpio.read(GPIOREEDS_UP)
 	local downvalue = gpio.read(GPIOREEDS_DOWN)
+	log.trace ("gpio reeds values up: ".. upvalue .. " down: " .. downvalue)
+
 	if (upvalue == 0 and downvalue == 1) then
 		M.rotate_up = false
 	elseif (upvalue == 1 and downvalue == 0) then

@@ -88,6 +88,9 @@ function hum_control(hum, min, max)
     elseif hum >= max then
         log.trace("turn hum off")
         incubator.humidifier_switch(false)
+    else 
+        log.trace("volver a llamar")
+        incubator.humidifier_switch(incubator.humidifier)
     end -- end if
 end     -- end function
 

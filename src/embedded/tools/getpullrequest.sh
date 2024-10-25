@@ -1,4 +1,5 @@
 #!/bin/bash
+# ./getpullrequest.sh 85 
 REMOTE_NAME="am_remote"
 REMOTE_URL="https://github.com/AlterMundi-MonitoreoyControl/Proyecto-Incubadora.git"
 

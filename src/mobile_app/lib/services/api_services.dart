@@ -124,7 +124,7 @@ class ApiService {
     try {
       var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.configEndPoint);
       print('URL de la API: $url');
-      
+
       var response = await http.post(
         url,
         headers: {
@@ -133,16 +133,17 @@ class ApiService {
         body: jsonEncode(updatedData),
       );
 
+      print(jsonEncode(updatedData));
       if (response.statusCode == 200) {
         print('Datos actualizados correctamente en la API');
         return configFromJson(response.body);
       } else {
         print('Respuesta de la API no exitosa: ${response.statusCode}');
+        print('${response.body}');
       }
     } catch (e) {
       print('Error en la llamada a la API: $e');
     }
     return null;
   }
-
 }

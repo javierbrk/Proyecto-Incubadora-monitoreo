@@ -367,7 +367,7 @@ local tray_map = {
 -- @return boolean: true if the date was set successfully, false otherwise
 ---------------------------------------------------------------------------------------------------
 function M.set_tray_date(tray_number, new_tray_date)
-	if type(new_tray_date) == "number" and #tostring(new_tray_date) == 10 then
+	if type(new_tray_date) == "number" and #tostring(new_tray_date) < 20 then
 			local tray_var = tray_map[tray_number]
 			if tray_var then
 					M[tray_var] = new_tray_date
@@ -383,7 +383,7 @@ end
 -------------------------------------------------------------------------------------------------
 
 function M.set_incubation_period(new_incubation_period)
-	if type(new_incubation_period) == "number" and #tostring(new_incubation_period) == 10 then
+	if type(new_incubation_period) == "number" and #tostring(new_incubation_period) < 10 then
 		M.incubation_period = new_incubation_period
 		return true
 	else

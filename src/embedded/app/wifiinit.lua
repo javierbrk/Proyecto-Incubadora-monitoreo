@@ -245,9 +245,9 @@ function W:on_change(new_config_table)
 		wifi.sta.connect()
 	else
 		-- try reconnect
-		wifi.sta.disconnect()
-	 	wifi.sta.connect()
-		return
+		--wifi.sta.disconnect()
+	 	--wifi.sta.connect()
+		--return
 	end -- else end
 end -- function end
 

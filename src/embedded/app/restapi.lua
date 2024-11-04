@@ -57,7 +57,8 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 	local body_data = {
 		a_temperature = string.format("%.2f", a_temperature),
 		a_humidity = string.format("%.2f", a_humidity),
-		a_pressure = string.format("%.2f", a_pressure)
+		a_pressure = string.format("%.2f", a_pressure),
+		wifi_status = ONLINE == 1 and "true" or "false"
 	}
 
 	local body_json = sjson.encode(body_data)

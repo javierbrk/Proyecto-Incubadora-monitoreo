@@ -5,6 +5,7 @@ W = {
 	sta_cfg = {},
 	ap_config = {},
 	station_cfg = {},
+	ONLINE = 0
 
 }
 
@@ -22,7 +23,7 @@ W.station_cfg.pwd = ""
 W.station_cfg.scan_method = "all"
 
 
-ONLINE = 0
+
 IPADD = nil
 IPGW = nil
 
@@ -137,7 +138,7 @@ function wifi_got_ip_event(ev, info)
 	-- Note: Having an IP address does not mean there is internet access!
 	-- Internet connectivity can be determined with net.dns.resolve().
 	-------------------------------------
-	ONLINE = 1
+	W.ONLINE = 1
 	IPADD = info.ip
 	IPGW = info.gw
 	log.trace("NodeMCU IP config:", info.ip, "netmask", info.netmask, "gw", info.gw)
@@ -160,7 +161,7 @@ end -- end function
 --
 ------------------------------------------------------------------------------------
 function wifi_disconnect_event(ev, info)
-	ONLINE = 0
+	W.ONLINE = 0
 	print(info)
 	print(info.reason)
 	print(info.ssid)

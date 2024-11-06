@@ -42,7 +42,6 @@ end
 
 function configurator:create_config_file()
 	log.trace("Creating a new config file")
-	local mac = wifi.sta.getmac()
 	local new_file = io.open("config.json", "w")
 			local config = {
 					rotation_duration = 5000,
@@ -54,7 +53,7 @@ function configurator:create_config_file()
 					tray_three_date = 0,
 					incubation_period = 0,
 					hash = "1234567890",
-					incubator_name = string.format("incubator %s",mac),
+					incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
 					max_hum = 70,
 					min_hum = 60
 			}

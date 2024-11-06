@@ -42,7 +42,7 @@ local M = {
 	tray_three_date = 0,
 	incubation_period = 0,
 	hash = 1235,
-	incubator_name = "incubator_1",
+	incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
 	rotate_up			   = true
 }
 

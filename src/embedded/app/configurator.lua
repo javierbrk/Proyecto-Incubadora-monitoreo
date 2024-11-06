@@ -53,7 +53,7 @@ function configurator:create_config_file()
 					tray_three_date = 0,
 					incubation_period = 0,
 					hash = "1234567890",
-					incubator_name = "incubator_1",
+					incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
 					max_hum = 70,
 					min_hum = 60
 			}

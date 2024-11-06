@@ -13,6 +13,7 @@
 
 -----------------------------------------------------------------------------
 credentials = require('credentials')
+mac = wifi.sta.getmac()
 
 local M = {
 	name                   = ..., -- module name, upvalue from require('module-name')
@@ -42,7 +43,7 @@ local M = {
 	tray_three_date = 0,
 	incubation_period = 0,
 	hash = 1235,
-	incubator_name = "incubator_1",
+	incubator_name = string.format("incubator %s",mac),
 	rotate_up			   = true
 }
 

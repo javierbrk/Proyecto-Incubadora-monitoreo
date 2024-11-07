@@ -182,8 +182,7 @@ function rotate()
     if controlervars.rotation_enabled then
         --will be activated when switch goes down
         controlervars.rotation_activated = false
-        --will be enabled when switch goes up
-        controlervars.rotation_enabled = false
+
         
         gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DISABLE)
         gpio.trig(GPIOREEDS_UP, gpio.INTR_DISABLE)
@@ -194,6 +193,7 @@ function rotate()
             gpio.trig(GPIOREEDS_UP, gpio.INTR_DOWN, trigger_rotation_off)
         else
             --if switch is down it shuld quickly go up ... if not disable rotation and notify
+            controlervars.rotation_enabled = false
             gpio.trig(GPIOREEDS_UP, gpio.INTR_UP, enable_rotation)
         end
 
@@ -201,6 +201,7 @@ function rotate()
             gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DOWN, trigger_rotation_off)
         else
             --if switch is down it shuld quickly go up ... if not disable rotation and notify
+            controlervars.rotation_enabled = false
             gpio.trig(GPIOREEDS_DOWN, gpio.INTR_UP, enable_rotation)
         end
 

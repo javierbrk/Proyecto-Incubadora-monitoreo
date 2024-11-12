@@ -62,3 +62,7 @@ Press F5 and enable Linux platform
 Errors may appear...
 Press F5 again and vuala 
 
+## Generate the APK
+Add the android device to the app, in codium we can do that in the bottom right corner 
+in the terminal, in the app root folder we run: flutter build apk --release 
+you can also run: flutter build apk --debug for a develop apk version

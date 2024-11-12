@@ -63,13 +63,14 @@ Errors may appear...
 Press F5 again and vuala 
 
 ## Generate the APK
-Add the android device to the app, in codium we can do that in the bottom right corner 
-in the terminal, in the app root folder we run: 
+Add the android device to the app, in VS code we can do that in the bottom right corner.
+
+in the app root folder we run: 
 ```bash
-flutter build apk --release 
+$ flutter build apk --release 
 ```
 
 for a develop apk version: 
 ```bash
-flutter build apk --debug 
+$ flutter build apk --debug 
 ```

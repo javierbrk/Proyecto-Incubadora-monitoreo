@@ -69,8 +69,7 @@ in the terminal, in the app root folder we run:
 flutter build apk --release 
 ```
 
-you can also run: 
+for a develop apk version: 
 ```bash
 flutter build apk --debug 
 ```
-for a develop apk version

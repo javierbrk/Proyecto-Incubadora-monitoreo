@@ -63,7 +63,7 @@ Errors may appear...
 Press F5 again and vuala 
 
 ## Generate the APK
-Add the android device to the app, in VS code we can do that in the bottom right corner.
+First add the android device to the app, in VS code we can do that in the bottom right corner.
 
 in the app root folder we run: 
 ```bash

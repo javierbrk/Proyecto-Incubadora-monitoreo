@@ -254,13 +254,13 @@ function M.rotation_switch(status)
 		M.rotation_change_dir()
 		if M.rotate_up then
 			log.trace("rotating upppppp")
-			gpio.write(GPIOVOLTEO_UP, 0)
-			gpio.write(GPIOVOLTEO_DOWN, 1)
+			gpio.write(GPIOVOLTEO_UP, 1)
+			gpio.write(GPIOVOLTEO_DOWN, 0)
 		else
 			log.trace("rotating downnn")
 
-			gpio.write(GPIOVOLTEO_UP, 1)
-			gpio.write(GPIOVOLTEO_DOWN, 0)
+			gpio.write(GPIOVOLTEO_UP, 0)
+			gpio.write(GPIOVOLTEO_DOWN, 1)
 		end
 		log.trace("rotating turning onnnn")
 		gpio.write(GPIOVOLTEO_EN, 1)

@@ -27,9 +27,12 @@ local last_temps_queue = deque.new()
 
 controlervars = {
     rotation_enabled=true,
-    rotation_activated = false
+    rotation_activated = false,
+    downtime = 0,
+    uptime = 0,
+    demora = 0,
+    half = 0
 }
-
 -----------------------------------------------------------------------------------
 -- ! @function is_temp_changing 	     verifies if temperature is changing
 -- ! @param temperature						 actual temperature
@@ -136,13 +139,38 @@ function trigger_rotation_off(pin, level)
     if(level==0) then
         if gpio.read(pin) == 1 then
             log.trace("[R] ruidoooo ")
-            --this function is activated when signal is going down ... it should be 0 
+            --this function is activated when signal is going down ... it should be 0
             return
         else
             gpio.trig(pin, gpio.INTR_DISABLE)
             controlervars.rotation_activated = true
             log.trace("[R]  rotation working pin activated ", pin, level)
             incubator.rotation_switch(false)
+
+            if pin == GPIOREEDS_UP then
+                log.trace("[R]  GPIOREEDS_UP ", pin, level)
+
+                --estoy arriba
+                if controlervars.demora > 0 then
+                    controlervars.uptime = node.uptime() / 1000000 - controlervars.demora
+                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.downtime, " ",
+                        controlervars.uptime, " ", controlervars.demora)
+                else
+                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.demora)
+                end
+            elseif pin == GPIOREEDS_DOWN then
+                log.trace("[R]  GPIOREEDS_DOWN ", pin, level)
+                if controlervars.demora > 0 then
+                    controlervars.downtime = node.uptime() / 1000000 - controlervars.demora
+                    log.trace("GPIOREEDS_DOWN controled vars------------", controlervars.downtime, " ",
+                        controlervars.uptime, " ", controlervars.demora)
+                else
+                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.demora)
+                end
+            else
+                controlervars.rotation_enabled = false
+                log.error("[R] rotation disabed, sensors are not working")
+            end
         end
     end
 end
@@ -154,7 +182,7 @@ function enable_rotation(pin, level)
     if (level == 1) then
         if gpio.read(pin) == 0 then
             log.trace("[R] noise, not able to enable rotation ")
-            --this function is activated when signal is going up ... it should be 1 
+            --this function is activated when signal is going up ... it should be 1
             return
         else
             gpio.trig(pin, gpio.INTR_DISABLE)
@@ -168,8 +196,7 @@ function abortrotation_and_notify()
     if controlervars.rotation_enabled then
         return
     else
-        log.error("[R] Fatalllllllllllllllllllllllllllll")
-        log.error("[R] rotation not working pin not de activated pin DOWN ", gpio.read(GPIOREEDS_DOWN), ",UP ",
+        log.error("[R] Fatalllllllll rotation not working pin not de activated pin DOWN ", gpio.read(GPIOREEDS_DOWN), ",UP ",
             gpio.read(GPIOREEDS_UP))
     end
 end
@@ -183,7 +210,7 @@ function rotate()
         --will be activated when switch goes down
         controlervars.rotation_activated = false
 
-        
+
         gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DISABLE)
         gpio.trig(GPIOREEDS_UP, gpio.INTR_DISABLE)
         -- only subscribe to the interrupts if state is up
@@ -216,7 +243,47 @@ function rotate()
         stoprotation:start()
         abortrotation:start()
     else
-        log.error("[R] rotation disabed, sensors are not working")
+        log.error("[R] rotation disabled, sensors are not working")
+    end
+end
+
+rotate_half_timer = tmr.create()
+
+--timer que rota dos veces y luego hasta la mitad
+function rotateandgettimes()
+    controlervars.demora = node.uptime() / 1000000
+    if (controlervars.downtime > 0 and controlervars.uptime == 0) then
+        log.trace("----------primero downtime  ", controlervars.downtime)
+        if math.floor(controlervars.downtime / 2) > 1 then
+            controlervars.half = math.floor(controlervars.downtime / 2) * 1000
+        else
+            controlervars.half = 3 * 1000
+        end
+    elseif (controlervars.downtime == 0 and controlervars.uptime > 0) then
+        log.trace("------------primero uptime  ", controlervars.uptime)
+        if math.floor(controlervars.uptime / 2) > 1 then
+            controlervars.half = math.floor(controlervars.uptime / 2) * 1000
+        else
+            controlervars.half = 3 * 1000
+        end
+    end
+    if (controlervars.downtime > 0 and controlervars.uptime > 0) then
+        rotateandgettimes_timer:unregister()
+        rotate_half_timer:register(controlervars.half, tmr.ALARM_SINGLE, function()
+            incubator.rotation_switch(false)
+            log.trace("Finished rotating half for ...   ", controlervars.half)
+            log.trace("rotation is working ... starting with the rest ", controlervars.half)
+            rotation:start()
+            temp_control_timer:start()
+            send_data_timer:start()
+        end)
+        incubator.rotation_switch(true)
+        log.trace("rotating half for ...   ", controlervars.half)
+        rotate_half_timer:start()
+    else
+        log.trace("[turn rotation on again ------------", controlervars.downtime, " ", controlervars.uptime, " ",
+            controlervars.demora)
+        rotate()
     end
 end
 
@@ -230,25 +297,42 @@ end
 
 incubator.init_values()
 configurator.init_module(incubator)
-apiserver.init_module(incubator, configurator)
-incubator.enable_testing(false)
 
-------------------------------------------------------------------------------------
--- ! timers
-------------------------------------------------------------------------------------
-local send_data_timer = tmr.create()
+if gpio.read(GPIOREEDS_UP) == 1 and gpio.read(GPIOREEDS_DOWN) == 1 then
+    --encontrar un sensor
+    log.trace("[R] turn rotation on first time ")
+    rotate()
+else
+    log.trace("[R] at least one sensor is active not activating rotation")
+end
+--medir tiempos y dejar en la mitad
+rotateandgettimes_timer = tmr.create()
+rotateandgettimes_timer:register(incubator.rotation_duration+1000, tmr.ALARM_AUTO, rotateandgettimes)
+rotateandgettimes_timer:start()
+
+
+
+
+
+
+-- apiserver.init_module(incubator, configurator)
+-- incubator.enable_testing(false)
+
+-- ------------------------------------------------------------------------------------
+-- -- ! timers
+-- ------------------------------------------------------------------------------------
+send_data_timer = tmr.create()
 send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
-send_data_timer:start()
+-- send_data_timer:start()
 
-local temp_control_timer = tmr.create()
+temp_control_timer = tmr.create()
 temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
-temp_control_timer:start()
+-- temp_control_timer:start()
 
-local rotation = tmr.create()
+rotation = tmr.create()
 rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
-rotation:start()
+-- rotation:start()
 
-local send_heap_uptime = tmr.create()
-send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
-send_heap_uptime:start()
-
+-- local send_heap_uptime = tmr.create()
+-- send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
+-- send_heap_uptime:start()

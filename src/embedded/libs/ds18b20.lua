@@ -17,7 +17,7 @@ function M.init(pin_number)
     M.addresses = {}
     M.conversion_timer = tmr.create()
     
-    gpio.config({ gpio = pin_number, dir = gpio.IN, pull = gpio.PULL_UP })
+    gpio.config({ gpio = pin_number, dir = gpio.IN, pull = gpio.FLOATING })
     -- Setup one-wire bus
     ow.setup(M.pin)
     
@@ -36,9 +36,9 @@ function M.init(pin_number)
                 -- Valid DS18B20 device found
                 count = count + 1
                 table.insert(M.addresses, addr)
-                print(string.format("Found DS18B20 sensor %d with address:", count))
+                --print(string.format("Found DS18B20 sensor %d with address:", count))
                 for i=1,8 do
-                    print(string.format("%02X", addr:byte(i)))
+                    --print(string.format("%02X", addr:byte(i)))
                 end
             end
         end
@@ -46,11 +46,11 @@ function M.init(pin_number)
     end
     
     if #M.addresses == 0 then
-        print("No DS18B20 sensors found!")
+        --print("No DS18B20 sensors found!")
         return false
     end
     
-    print(string.format("Found %d DS18B20 sensor(s)", #M.addresses))
+    --print(string.format("Found %d DS18B20 sensor(s)", #M.addresses))
     M.initialized = true
     return true
 end
@@ -72,7 +72,7 @@ local function read_temp_data(addr)
     -- Verify CRC
     local crc = ow.crc8(string.sub(data, 1, 8))
     if crc ~= data:byte(9) then
-        print("CRC verification failed!")
+        --print("CRC verification failed!")
         return nil
     end
     
@@ -114,7 +114,7 @@ end
 -- Read temperatures from all discovered sensors
 function M.read_all_temps(callback)
     if not M.initialized then
-        print("Module not initialized! Call init() first")
+        --print("Module not initialized! Call init() first")
         return
     end
     
@@ -129,14 +129,14 @@ function M.read_all_temps(callback)
                         address = M.addresses[current_sensor],
                         temperature = temp
                     }
-                    -- Print formatted address and temperature
+                    -- --print formatted address and temperature
                     local addr_str = ""
                     for j=1,8 do
                         addr_str = addr_str .. string.format("%02X", M.addresses[current_sensor]:byte(j))
                     end
-                    print(string.format("Sensor %d (addr: %s): %.2f°C", current_sensor, addr_str, temp))
+                    --print(string.format("Sensor %d (addr: %s): %.2f°C", current_sensor, addr_str, temp))
                 else
-                    print(string.format("Failed to read sensor %d", current_sensor))
+                    --print(string.format("Failed to read sensor %d", current_sensor))
                 end
                 
                 current_sensor = current_sensor + 1

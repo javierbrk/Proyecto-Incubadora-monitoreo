@@ -252,20 +252,43 @@ function rotate()
     end
 end
 
+
+------------------------------------------------------------------------------------
+-- ! timers
+------------------------------------------------------------------------------------
+
 rotate_half_timer = tmr.create()
+stoprotation = tmr.create()
+abortrotation = tmr.create()
+
+local send_data_timer = tmr.create()
+send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
+-- send_data_timer:start()
+
+temp_control_timer = tmr.create()
+temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
+-- temp_control_timer:start()
+
+rotation = tmr.create()
+rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
+-- rotation:start()
+
+-- local send_heap_uptime = tmr.create()
+-- send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
+-- send_heap_uptime:start()
 
 --timer que rota dos veces y luego hasta la mitad
 function rotateandgettimes()
     controlervars.demora = node.uptime() / 1000000
     if (controlervars.downtime > 0 and controlervars.uptime == 0) then
-        log.trace("----------primero downtime  ", controlervars.downtime)
+        log.trace("[R] ----------primero downtime  ", controlervars.downtime)
         if math.floor(controlervars.downtime / 2) > 1 then
             controlervars.half = math.floor(controlervars.downtime / 2) * 1000
         else
             controlervars.half = 3 * 1000
         end
     elseif (controlervars.downtime == 0 and controlervars.uptime > 0) then
-        log.trace("------------primero uptime  ", controlervars.uptime)
+        log.trace("[R] ------------primero uptime  ", controlervars.uptime)
         if math.floor(controlervars.uptime / 2) > 1 then
             controlervars.half = math.floor(controlervars.uptime / 2) * 1000
         else
@@ -274,19 +297,21 @@ function rotateandgettimes()
     end
     if (controlervars.downtime > 0 and controlervars.uptime > 0) then
         rotateandgettimes_timer:unregister()
+        incubator.rotation_duration = math.max(controlervars.downtime,controlervars.uptime)*1000 + 1000 
+        log.trace("[R] Seting rotation duration to    ",  incubator.rotation_duration )
         rotate_half_timer:register(controlervars.half, tmr.ALARM_SINGLE, function()
             incubator.rotation_switch(false)
-            log.trace("Finished rotating half for ...   ", controlervars.half)
-            log.trace("rotation is working ... starting with the rest ", controlervars.half)
+            log.trace("[R] Finished rotating half for ...   ", controlervars.half)
+            log.trace("[R] Rotation is working ... starting with the rest ", controlervars.half)
             rotation:start()
             temp_control_timer:start()
             send_data_timer:start()
         end)
         incubator.rotation_switch(true)
-        log.trace("rotating half for ...   ", controlervars.half)
+        log.trace("[R] rotating half for ...   ", controlervars.half)
         rotate_half_timer:start()
     else
-        log.trace("[turn rotation on again ------------", controlervars.downtime, " ", controlervars.uptime, " ",
+        log.trace("[R] turn rotation on again ------------", controlervars.downtime, " ", controlervars.uptime, " ",
             controlervars.demora)
         rotate()
     end

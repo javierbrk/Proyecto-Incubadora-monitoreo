@@ -32,18 +32,20 @@ local w = {
     connection_timeout = 10000, -- 10 seconds
     max_retries = 10,
     current_retry = 0,
-    reconnect_timer = nil
+    reconnect_timer = nil,
+    validation_timer = nil,
+    status = {
+        is_transitioning = false,
+        last_change_time = 0,
+        validation_timeout = 30000, -- 30 seconds to validate new connection
+        pending_fallback = false
+    }
 }
 
 ------------------------------------------------------------------------------------
---
--- ! @function format_ip
--- ! Formats IP information for display
--- !
--- ! @param ip          table containing ip configuration
--- ! @return string     formatted IP information
---
+-- Helper Functions
 ------------------------------------------------------------------------------------
+
 local function format_ip(ip)
     return string.format(
         "IP: %s\nNetmask: %s\nGateway: %s\nDNS: %s",
@@ -54,15 +56,45 @@ local function format_ip(ip)
     )
 end
 
+function w:reset_state()
+    self.current_retry = 0
+    self.status.is_transitioning = false
+    self.status.pending_fallback = false
+    if self.validation_timer then
+        self.validation_timer:unregister()
+    end
+    if self.reconnect_timer then
+        self.reconnect_timer:unregister()
+    end
+end
+
+function w:start_validation_timer()
+	if self.validation_timer then
+			self.validation_timer:unregister()
+	end
+	
+	self.validation_timer = tmr.create()
+	self.validation_timer:alarm(self.status.validation_timeout, tmr.ALARM_SINGLE, function()
+			if self.status.is_transitioning and self.online == 0 then
+					log.trace("New credentials validation failed, reverting to previous configuration...")
+					self.status.pending_fallback = true
+					
+					if self.old_ssid and self.old_passwd then
+							self:set_new_ssid(self.old_ssid)
+							self:set_passwd(self.old_passwd)
+							self.old_ssid = nil
+							self.old_passwd = nil
+							self:reset_state()
+							self:connect()
+					end
+			end
+	end)
+end
+
 ------------------------------------------------------------------------------------
---
--- ! @function set_new_ssid
--- ! Modifies the actual SSID WiFi configuration
--- !
--- ! @param new_ssid    string containing the new SSID
--- ! @return boolean    true if successful, false otherwise
---
+-- Core WiFi Functions
 ------------------------------------------------------------------------------------
+
 function w:set_new_ssid(new_ssid)
     if type(new_ssid) == "string" and new_ssid ~= "" then
         self.station_cfg.ssid = new_ssid
@@ -71,15 +103,6 @@ function w:set_new_ssid(new_ssid)
     return false
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function set_passwd
--- ! Modifies the actual WiFi password
--- !
--- ! @param new_passwd  string containing the new password
--- ! @return boolean    true if successful, false otherwise
---
-------------------------------------------------------------------------------------
 function w:set_passwd(new_passwd)
     if type(new_passwd) == "string" and new_passwd ~= "" then
         self.station_cfg.pwd = new_passwd
@@ -88,30 +111,20 @@ function w:set_passwd(new_passwd)
     return false
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function schedule_reconnect
--- ! Schedules a reconnection attempt using a timer
---
-------------------------------------------------------------------------------------
 function w:schedule_reconnect()
-    if self.reconnect_timer then
-        self.reconnect_timer:unregister()
-    end
-    
-    self.reconnect_timer = tmr.create()
-    self.reconnect_timer:register(self.connection_timeout, tmr.ALARM_SINGLE, function()
-        self:connect()
-    end)
-    self.reconnect_timer:start()
+	if self.reconnect_timer then
+			self.reconnect_timer:unregister()
+	end
+	
+	-- Exponential backoff for reconnection attempts
+	local delay = math.min(self.connection_timeout * math.pow(1.5, self.current_retry - 1), 30000)
+	
+	self.reconnect_timer = tmr.create()
+	self.reconnect_timer:alarm(delay, tmr.ALARM_SINGLE, function()
+			self:connect()
+	end)
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function connect
--- ! Initiates WiFi connection with configured parameters
---
-------------------------------------------------------------------------------------
 function w:connect()
     wifi.sta.disconnect()
     wifi.sta.config(self.station_cfg, true)
@@ -119,32 +132,26 @@ function w:connect()
 end
 
 ------------------------------------------------------------------------------------
---
--- ! @function wifi_connect_event
--- ! Handles successful WiFi connection events
--- !
--- ! @param ev         event status
--- ! @param info       connection information
---
+-- Event Handlers
 ------------------------------------------------------------------------------------
+
 local function wifi_connect_event(ev, info)
     w.current_retry = 0
     log.trace(string.format("Connection to AP %s established!", tostring(info.ssid)))
     log.trace("Waiting for IP address...")
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function wifi_got_ip_event
--- ! Handles successful IP acquisition events
--- ! Configures NTP if not enabled
--- !
--- ! @param ev         event status
--- ! @param info       IP configuration information
---
-------------------------------------------------------------------------------------
 local function wifi_got_ip_event(ev, info)
     w.online = 1
+    
+    -- If this was a credential change and it succeeded
+    if w.status.is_transitioning then
+        w:reset_state()
+        w.old_ssid = nil
+        w.old_passwd = nil
+        log.trace("New credentials validated successfully")
+    end
+    
     log.trace("Network Configuration:")
     log.trace(format_ip(info))
     
@@ -159,22 +166,17 @@ local function wifi_got_ip_event(ev, info)
     log.trace("System is online and ready!")
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function wifi_disconnect_event
--- ! Handles WiFi disconnection events
--- ! Manages reconnection attempts and fallback to previous credentials
--- !
--- ! @param ev         event status
--- ! @param info       disconnection information
---
-------------------------------------------------------------------------------------
 local function wifi_disconnect_event(ev, info)
     w.online = 0
     
     log.trace(string.format("WiFi disconnected from AP(%s). Reason: %s", 
         info.ssid or "unknown",
         info.reason or "unknown"))
+    
+    -- Don't retry if we're waiting for fallback
+    if w.status.pending_fallback then
+        return
+    end
     
     if w.current_retry < w.max_retries then
         w.current_retry = w.current_retry + 1
@@ -183,27 +185,25 @@ local function wifi_disconnect_event(ev, info)
             w.max_retries))
         w:schedule_reconnect()
     else
-        if w.old_ssid and w.old_passwd then
+        if w.old_ssid and w.old_passwd and not w.status.is_transitioning then
             log.trace("Maximum retries reached. Attempting to connect with previous credentials...")
             w:set_new_ssid(w.old_ssid)
             w:set_passwd(w.old_passwd)
             w.old_ssid = nil
             w.old_passwd = nil
-            w.current_retry = 0
+            w:reset_state()
             w:connect()
         else
             log.trace("Maximum retries reached. Please check WiFi configuration.")
+            w:reset_state()
         end
     end
 end
 
 ------------------------------------------------------------------------------------
---
--- ! @function init
--- ! Initializes WiFi configuration and starts connection
--- ! Sets up event handlers and configures both AP and Station modes
---
+-- Initialization and Configuration
 ------------------------------------------------------------------------------------
+
 function w:init()
     -- Setup event handlers
     wifi.sta.on("got_ip", wifi_got_ip_event)
@@ -236,20 +236,18 @@ function w:init()
     self:connect()
 end
 
-------------------------------------------------------------------------------------
---
--- ! @function on_change
--- ! Handles WiFi configuration changes
--- ! Manages credential backup and updates
--- !
--- ! @param new_config_table    table containing new configuration
---
-------------------------------------------------------------------------------------
 function w:on_change(new_config_table)
     if type(new_config_table) ~= "table" then return end
+    if self.status.is_transitioning then
+        log.trace("Configuration change already in progress, please wait...")
+        return
+    end
     
     local config_changed = false
+    self.status.is_transitioning = true
+
     
+    -- Backup current configuration before any changes
     if new_config_table.ssid and new_config_table.ssid ~= self.station_cfg.ssid then
         self.old_ssid = self.station_cfg.ssid
         self.old_passwd = self.station_cfg.pwd
@@ -265,8 +263,12 @@ function w:on_change(new_config_table)
     end
     
     if config_changed then
-        self.current_retry = 0
+        self:reset_state()
+        self.status.is_transitioning = true  -- Reset by connect success or validation timeout
         self:connect()
+        self:start_validation_timer()
+    else
+        self.status.is_transitioning = false
     end
 end
 

@@ -104,11 +104,11 @@ function w:set_new_ssid(new_ssid)
 end
 
 function w:set_passwd(new_passwd)
-    if type(new_passwd) == "string" and new_passwd ~= "" then
-        self.station_cfg.pwd = new_passwd
-        return true
-    end
-    return false
+	if type(new_passwd) == "string" then
+			self.station_cfg.pwd = new_passwd
+			return true
+	end
+	return false
 end
 
 function w:schedule_reconnect()

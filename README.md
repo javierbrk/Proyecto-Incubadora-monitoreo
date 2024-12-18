@@ -1,4 +1,4 @@
-# Project-Incubadora
+# LibrePollo
 
 Is an innovative project aimed at enhancing the efficiency and productivity of poultry incubators in family farming. Developed by Asociación Civil AlterMundi and CTO, this system integrates advanced monitoring and control technologies to optimize temperature and humidity levels, reducing manual labor and increasing hatch rates. Utilizing free hardware and software, the project promotes sustainable agricultural practices and empowers local communities with technical skills. Join us in revolutionizing family farming with technology!
 

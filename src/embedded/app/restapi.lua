@@ -57,7 +57,8 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 		a_temperature = string.format("%.2f", a_temperature),
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),
-		wifi_status = configurator.WiFi.ONLINE == 1 and "connected" or "disconnected"
+		wifi_status = configurator.WiFi.ONLINE == 1 and "connected" or "disconnected",
+		rotation = restapi.incubator.rotation_enabled or restapi.incubator.rotation_activated			= false
 	}
 
 	local body_json = sjson.encode(body_data)
@@ -107,6 +108,23 @@ function restapi.wifi_scan_get(req)
 	body = response_json
 	}
 end
+function restapi.do_rotation()
+	local rotation = sjson.decode(req.getbody())
+	if rotation then
+		if rotation.move == "up" then
+			restapi.incubator.do_rotate_up()
+		elseif rotation.move == "down" then
+			restapi.incubator.do_rotate_down()
+		end
+		stoprotation_tmr= tmr.create()
+		stoprotation_tmr:register(1000, tmr.ALARM_SINGLE, restapi.incubator.do_stop_rotation())
+		stoprotation_tmr:start()
+		return { status = "2001 OK", type = "application/json", body = "Rotation set to " .. rotation.rotation }
+	else
+		return { status = "400", type = "application/json", body = "Error in setting rotation" }
+	end
+
+end
 
 function restapi.init_module(incubator_object,configurator_object)
 	-- * start local server
@@ -135,6 +153,8 @@ function restapi.init_module(incubator_object,configurator_object)
 	httpd.dynamic(httpd.POST, "/config", restapi.change_config_file)
 	httpd.dynamic(httpd.GET, "/actual", restapi.actual_ht)
 	httpd.dynamic(httpd.GET, "/wifi", restapi.wifi_scan_get)
+	httpd.dynamic(httpd.POST, "/rotation", restapi.do_rotation)
+
 end
 
 return restapi

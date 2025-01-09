@@ -58,9 +58,9 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),
 		wifi_status = configurator.WiFi.ONLINE == 1 and "connected" or "disconnected",
-		rotation = restapi.incubator.rotation_enabled or restapi.incubator.rotation_activated			= false
+		rotation = restapi.incubator.rotation_enabled or restapi.incubator.rotation_activated
 	}
-
+	
 	local body_json = sjson.encode(body_data)
 	return { status = "200 OK", type = "application/json", body = body_json }
 end
@@ -108,22 +108,26 @@ function restapi.wifi_scan_get(req)
 	body = response_json
 	}
 end
-function restapi.do_rotation()
+function restapi.do_rotation(req)
 	local rotation = sjson.decode(req.getbody())
 	if rotation then
 		if rotation.move == "up" then
 			restapi.incubator.do_rotate_up()
 		elseif rotation.move == "down" then
 			restapi.incubator.do_rotate_down()
+		else
+			response_data.message="error"
+			return { status = "400", type = "application/json", body = sjson.encode(response_data) }
 		end
 		stoprotation_tmr= tmr.create()
-		stoprotation_tmr:register(1000, tmr.ALARM_SINGLE, restapi.incubator.do_stop_rotation())
+		stoprotation_tmr:register(1000, tmr.ALARM_SINGLE, restapi.incubator.do_not_rotate)
 		stoprotation_tmr:start()
-		return { status = "2001 OK", type = "application/json", body = "Rotation set to " .. rotation.rotation }
+		response_data.message="success"
+		return { status = "201", type = "application/json", body = sjson.encode(response_data) }
 	else
-		return { status = "400", type = "application/json", body = "Error in setting rotation" }
+		response_data.message="error"
+		return { status = "400", type = "application/json", body = sjson.encode(response_data) }
 	end
-
 end
 
 function restapi.init_module(incubator_object,configurator_object)

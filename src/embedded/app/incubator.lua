@@ -44,7 +44,9 @@ local M = {
 	incubation_period = 0,
 	hash = 1235,
 	incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
-	rotate_up                       = true
+	rotate_up                       = true,
+	rotation_enabled				= true,
+    rotation_activated 				= false
 }
 
 _G[M.name] = M
@@ -184,17 +186,17 @@ end
 -------------------------------------
 function M.humidifier_switch(status)
 	local current_time = M.get_uptime_in_sec()
-	log.warn("humidifier current_time " .. current_time)
+	log.trace("humidifier current_time " .. current_time)
 
 	if not M.humidifier_enabled then
 		--humidifier disabled, check for waiting_off time concluded
-		log.error("humidifier disabled ")
+		log.warn("humidifier disabled ")
 		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
 			M.humidifier_enabled = true
-			log.warn("humidifier enabled time out expired")
+			log.trace("humidifier enabled time out expired")
 			if status then
 				if (not M.humidifier) then
-					log.warn("humidifier was off... turning on ")
+					log.trace("humidifier was off... turning on ")
 					--estaba apagado y lo prendo
 					M.hum_turn_on_time = current_time
 					M.humidifier = status
@@ -203,44 +205,65 @@ function M.humidifier_switch(status)
 		end
 	end
 
-	log.warn("humidifier enabled")
+	log.trace("humidifier enabled")
 	if status and M.humidifier_enabled then -- encender humidifier
 		if (not M.humidifier) then       -- estaba apagado
-			log.warn("humidifier was off... turning on ")
+			log.trace("humidifier was off... turning on ")
 
 			--estaba apagado y lo prendo
 			M.hum_turn_on_time = current_time
 			M.humidifier = status
 		else
 			--estaba pendido y sigue
-			log.warn("humidifier was on... turned on" .. M.hum_turn_on_time)
+			log.trace("humidifier was on... turned on" .. M.hum_turn_on_time)
 
-			log.warn("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
-			log.warn("humidifier was on... turning on.. time left " ..
+			log.trace("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
+			log.trace("humidifier was on... turning on.. time left " ..
 				(M.humidifier_max_on_time - (current_time - M.hum_turn_on_time)))
 			--verificar el tiempo maximo de on
 			if ((current_time - M.hum_turn_on_time) > M.humidifier_max_on_time) then
 				M.humidifier_enabled = false
 				M.humidifier = false
 				M.hum_turn_off_time = current_time
-				log.error("humidifier disabled beacuse time greater than max")
+				log.warn("humidifier disabled because time greater than max")
 			end
 		end
 	end
 
 	if status and M.humidifier_enabled then
 		-- logica negada
-		-- gpio.write(GPIOHUMID, 1)
 		gpio.write(GPIOHUMID, 0)
-		log.warn("humidifier pin turned on--------------------")
+		log.trace("humidifier pin turned on--------------------")
 	else
 		M.humidifier = false
 		-- logica negada
-		-- gpio.write(GPIOHUMID, 0)
 		gpio.write(GPIOHUMID, 1)
-		log.warn("humidifier pin turned off--------------------")
+		log.trace("humidifier pin turned off--------------------")
 	end -- if end
 end  -- function end
+
+function M.do_rotate_up()
+	log.trace("rotating upppppp")
+	gpio.write(GPIOVOLTEO_UP, 1)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
+	log.trace("rotating turning onnnn")
+	gpio.write(GPIOVOLTEO_EN, 1)
+end
+
+function M.do_rotate_down()
+	log.trace("rotating downnn")
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 1)
+	log.trace("rotating turning onnnn")
+	gpio.write(GPIOVOLTEO_EN, 1)
+end
+function M.do_not_rotate()
+	--switch off
+	log.trace("turning offfffffff")
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
+	gpio.write(GPIOVOLTEO_EN, 0)
+end
 
 -------------------------------------
 -- @function rotation 			Activates or deactivates rotation
@@ -253,24 +276,12 @@ function M.rotation_switch(status)
 		--switch on
 		M.rotation_change_dir()
 		if M.rotate_up then
-			log.trace("rotating upppppp")
-			gpio.write(GPIOVOLTEO_UP, 1)
-			gpio.write(GPIOVOLTEO_DOWN, 0)
+			M.do_rotate_up()
 		else
-			log.trace("rotating downnn")
-
-			gpio.write(GPIOVOLTEO_UP, 0)
-			gpio.write(GPIOVOLTEO_DOWN, 1)
+			M.do_rotate_down()
 		end
-		log.trace("rotating turning onnnn")
-		gpio.write(GPIOVOLTEO_EN, 1)
 	else
-		--switch off
-		log.trace("turning offfffffff")
-
-		gpio.write(GPIOVOLTEO_UP, 0)
-		gpio.write(GPIOVOLTEO_DOWN, 0)
-		gpio.write(GPIOVOLTEO_EN, 0)
+		M.do_not_rotate()
 	end
 end -- function end
 
@@ -385,7 +396,7 @@ end
 -------------------------------------------------------------------------------------------------
 
 function M.set_incubation_period(new_incubation_period)
-	if type(new_incubation_period) == "number" and #tostring(new_incubation_period) < 10 then
+	if type(new_incubation_period) == "number" and #tostring(new_incubation_period) <= 10 then
 		M.incubation_period = new_incubation_period
 		return true
 	else
@@ -416,6 +427,7 @@ end     -- function end
 function M.set_incubator_name(new_incubator_name)
 if type(new_incubator_name) == "string" and #new_incubator_name <= 30 then
 		M.incubator_name = new_incubator_name
+		INICIALES = incubator.name
 		return true
 else
 		return false

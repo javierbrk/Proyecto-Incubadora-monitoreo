@@ -1,15 +1,10 @@
 import 'package:incubapp_lite/models/wifi_model.dart';
-import 'package:incubapp_lite/views/initial_home.dart';
+import 'package:incubapp_lite/models/actual_model.dart';
+import 'package:incubapp_lite/models/config_model.dart';
 import 'package:incubapp_lite/services/api_services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:android_flutter_wifi/android_flutter_wifi.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:incubapp_lite/views/home.dart';
-import 'package:incubapp_lite/views/wifi_home.dart';
 import 'package:incubapp_lite/views/initial_home.dart';
-import 'package:incubapp_lite/services/api_services.dart';
+import 'package:incubapp_lite/views/home.dart';
 import 'package:incubapp_lite/views/counter_home.dart';
 import 'package:incubapp_lite/views/graf_home.dart';
 
@@ -21,93 +16,154 @@ class WHome extends StatefulWidget {
 }
 
 class _WHomeState extends State<WHome> {
-  
   int _selectedIndex = 0;
-
   late Wifi? _wifiModel = null;
+  late Config? _configModel = Config(
+      incubatorName: "Nombre",
+      ssid: "SSID",
+      minHum: 50,
+      maxHum: 70,
+      minTemperature: 37,
+      maxTemperature: 39,
+      rotationPeriod: 3600000,
+      rotationDuration: 5000,
+      passwd: "12345678",
+      hash: "1234",
+      incubationPeriod: 18,
+      trayOneDate: 10000,
+      trayTwoDate: 5000,
+      trayThreeDate: 0);
 
   @override
   void initState() {
     super.initState();
-    _getData();
+    _loadData();
   }
 
-  Future<void> _getData() async {
-    _wifiModel = (await ApiService().getWifi());
+  Future<void> _loadData() async {
+    _wifiModel = await ApiService().getWifi();
+    _configModel = await ApiService().getConfig();
     setState(() {});
   }
 
   Future<void> _connectToWifi(String ssid, String password) async {
     try {
       if (ssid.isEmpty || password.isEmpty) {
-        throw ("SSID and Password can't be empty");
+        throw ("SSID y contraseña no pueden estar vacíos");
       }
 
-      debugPrint('SSID: $ssid, Password: $password');
+      // Construimos el JSON actualizado
+      Map<String, dynamic> updatedConfig = {
+        'ssid': ssid,
+        'passwd': password,
+        'hash': _configModel?.hash,
+        'incubator_name': _configModel?.incubatorName,
+        'incubation_period': _configModel?.incubationPeriod,
+        'max_temperature': _configModel?.maxTemperature,
+        'min_temperature': _configModel?.minTemperature,
+        'max_hum': _configModel?.maxHum,
+        'min_hum': _configModel?.minHum,
+        'rotation_duration': _configModel?.rotationDuration,
+        'rotation_period': _configModel?.rotationPeriod,
+        'tray_one_date': _configModel?.trayOneDate,
+        'tray_two_date': _configModel?.trayTwoDate,
+        'tray_three_date': _configModel?.trayThreeDate,
+      };
 
-      // Return boolean value
-      // If true then connection is success
-      // If false then connection failed due to authentication
-      var result = await AndroidFlutterWifi.connectToNetwork(ssid, password);
+      // Enviamos el JSON a la API
+      await ApiService().updateConfig(updatedConfig);
 
-      debugPrint('---------Connection result-----------: ${result.toString()}');
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Evita que el usuario cierre el diálogo
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Conectando...'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text('Esperando respuesta del dispositivo.'),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Espera para comprobar el estado de conexión
+      const delayDuration = Duration(seconds: 15);
+      await Future.delayed(delayDuration);
+
+      // Cerrar el diálogo de carga
+      Navigator.pop(context);
+
+      // Después de enviar el JSON, verificamos el estado de la conexión
+      Actual? actualStatus = await ApiService().getActual();
+
+      // Mostramos un mensaje dependiendo del estado del WiFi
+      String message = actualStatus?.wifiStatus == "connected"
+          ? "Contraseña correcta. Conexión exitosa."
+          : "Contraseña incorrecta. No se pudo conectar.";
+
+      // Mostramos un mensaje al usuario
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Resultado de la conexión"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Aceptar"),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
-      print(e);
+      print("Error: $e");
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Error"),
+          content: Text("No se pudo conectar: $e"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Aceptar"),
+            ),
+          ],
+        ),
+      );
     }
   }
 
-  Future<void> _showWifiListDialog() async {
-    if (_wifiModel == null || _wifiModel!.networks.isEmpty) {
-      print("No hay redes Wi-Fi disponibles");
-      return;
-    }
 
-    List<String> networkSSIDs = _wifiModel!.networks.map((network) => network.ssid).toList();
 
-    String password = ''; // Variable para almacenar la contraseña ingresada
-    String? selectedSSID = await showDialog(
+  Future<void> _showPasswordDialog(String ssid) async {
+    String password = '';
+
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Ingrese la contraseña:'),
-          content: Column(
-            children: [
-              SingleChildScrollView(
-                child: ListBody(
-                  children: networkSSIDs.map((ssid) {
-                    return ListTile(
-                      title: Text(ssid),
-                      onTap: () {
-                        Navigator.pop(context, ssid);
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-              TextField(
-                onChanged: (value) {
-                  password = value;
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña'
-                ),
-              ),
-            ],
+          title: Text('Ingrese la contraseña para $ssid'),
+          content: TextField(
+            onChanged: (value) {
+              password = value;
+            },
+            obscureText: true,
+            decoration: InputDecoration(labelText: 'Contraseña'),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Cancelar la conexión
-              },
+              onPressed: () => Navigator.pop(context),
               child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
-                // Conectar a la red con la contraseña ingresada
-                if (password.isNotEmpty) {
-                  Navigator.pop(context, password);
-                }
+                Navigator.pop(context);
+                _connectToWifi(ssid, password);
               },
               child: Text('Conectar'),
             ),
@@ -115,13 +171,7 @@ class _WHomeState extends State<WHome> {
         );
       },
     );
-
-    if (selectedSSID != null) {
-      // Ahora puedes realizar la conexión con la red seleccionada y la contraseña ingresada
-      _connectToWifi(selectedSSID, password);
-    }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +179,7 @@ class _WHomeState extends State<WHome> {
       appBar: AppBar(
         title: const Text('REDES DISPONIBLES'),
       ),
+
       body: _wifiModel == null
           ? const Center(
               child: CircularProgressIndicator(),
@@ -138,44 +189,25 @@ class _WHomeState extends State<WHome> {
               itemBuilder: (context, index) {
                 final network = _wifiModel!.networks[index];
                 return Card(
-                  child: InkWell(
+                  child: ListTile(
+                    title: Text(network.ssid),
+                    subtitle: Text('RSSI: ${network.rssi}'),
                     onTap: () {
-                      // Mostrar el diálogo de selección de red Wi-Fi
-                      _showWifiListDialog();
+                      // Al seleccionar una red, mostrar el diálogo de contraseña
+                      _showPasswordDialog(network.ssid);
                     },
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Text('SSID:'),
-                            Text(network.ssid),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Text('RSSI:'),
-                            Text(network.rssi.toString()),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 10.0,
-                        ),
-                      ],
-                    ),
                   ),
                 );
               },
             ),
-    
-    bottomNavigationBar: BottomNavigationBar(
+
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         backgroundColor: const Color.fromARGB(65, 65, 65, 1),
         selectedItemColor: Colors.grey,
         unselectedItemColor: Colors.black,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Inicio',
@@ -224,5 +256,4 @@ class _WHomeState extends State<WHome> {
         break;
     }
   }
-
 }

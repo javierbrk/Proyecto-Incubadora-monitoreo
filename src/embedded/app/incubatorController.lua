@@ -122,10 +122,11 @@ end -- read_and_send_data end
 ------------------------------------------------------------------------------------
 function stop_rot()
     incubator.rotation_switch(false)
-    if controlervars.rotation_activated == true then
+    if incubator.rotation_activated == true then
         log.trace("[R] rotation working :)")
     else
         log.error("[R] rotation error ----- sensors not activated after rotation")
+        incubator.rotation_enabled = false
         --send_alert_to_grafana
     end
 end
@@ -143,7 +144,7 @@ function trigger_rotation_off(pin, level)
             return
         else
             gpio.trig(pin, gpio.INTR_DISABLE)
-            controlervars.rotation_activated = true
+            incubator.rotation_activated = true
             log.trace("[R]  rotation working pin activated ", pin, level)
             incubator.rotation_switch(false)
 
@@ -187,13 +188,13 @@ function enable_rotation(pin, level)
         else
             gpio.trig(pin, gpio.INTR_DISABLE)
             log.trace("[R] rotation working rotation is active thanks to pin ", pin," level ", level)
-            controlervars.rotation_enabled = true
+            incubator.rotation_enabled = true
         end
     end
 end
 
 function abortrotation_and_notify()
-    if controlervars.rotation_enabled then
+    if incubator.rotation_enabled then
         return
     else
         log.error("[R] Fatalllllllllll rotation not working pin not de activated pin DOWN ",
@@ -207,9 +208,9 @@ end
 ------------------------------------------------------------------------------------
 function rotate()
     log.trace("[R] rotation-------------------------------")
-    if controlervars.rotation_enabled then
+    if incubator.rotation_enabled then
         --will be activated when switch goes down
-        controlervars.rotation_activated = false
+        incubator.rotation_activated = false
 
 
         gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DISABLE)
@@ -221,7 +222,7 @@ function rotate()
             gpio.trig(GPIOREEDS_UP, gpio.INTR_DOWN, trigger_rotation_off)
         else
             --if switch is down it shuld quickly go up ... if not disable rotation and notify
-            controlervars.rotation_enabled = false
+            incubator.rotation_enabled = false
             gpio.trig(GPIOREEDS_UP, gpio.INTR_UP, enable_rotation)
         end
 
@@ -229,7 +230,7 @@ function rotate()
             gpio.trig(GPIOREEDS_DOWN, gpio.INTR_DOWN, trigger_rotation_off)
         else
             --if switch is down it shuld quickly go up ... if not disable rotation and notify
-            controlervars.rotation_enabled = false
+            incubator.rotation_enabled = false
             gpio.trig(GPIOREEDS_DOWN, gpio.INTR_UP, enable_rotation)
         end
         if gpio.read(GPIOREEDS_DOWN) == 0 or gpio.read(GPIOREEDS_UP) == 0 then

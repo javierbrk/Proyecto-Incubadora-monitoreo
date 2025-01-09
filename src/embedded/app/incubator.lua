@@ -44,7 +44,9 @@ local M = {
 	incubation_period = 0,
 	hash = 1235,
 	incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
-	rotate_up                       = true
+	rotate_up                       = true,
+	rotation_enabled				= true,
+    rotation_activated 				= false
 }
 
 _G[M.name] = M
@@ -240,6 +242,29 @@ function M.humidifier_switch(status)
 	end -- if end
 end  -- function end
 
+function M.do_rotate_up()
+	log.trace("rotating upppppp")
+	gpio.write(GPIOVOLTEO_UP, 1)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
+	log.trace("rotating turning onnnn")
+	gpio.write(GPIOVOLTEO_EN, 1)
+end
+
+function M.do_rotate_down()
+	log.trace("rotating downnn")
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 1)
+	log.trace("rotating turning onnnn")
+	gpio.write(GPIOVOLTEO_EN, 1)
+end
+function M.do_not_rotate()
+	--switch off
+	log.trace("turning offfffffff")
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
+	gpio.write(GPIOVOLTEO_EN, 0)
+end
+
 -------------------------------------
 -- @function rotation 			Activates or deactivates rotation
 --
@@ -251,24 +276,12 @@ function M.rotation_switch(status)
 		--switch on
 		M.rotation_change_dir()
 		if M.rotate_up then
-			log.trace("rotating upppppp")
-			gpio.write(GPIOVOLTEO_UP, 1)
-			gpio.write(GPIOVOLTEO_DOWN, 0)
+			M.do_rotate_up()
 		else
-			log.trace("rotating downnn")
-
-			gpio.write(GPIOVOLTEO_UP, 0)
-			gpio.write(GPIOVOLTEO_DOWN, 1)
+			M.do_rotate_down()
 		end
-		log.trace("rotating turning onnnn")
-		gpio.write(GPIOVOLTEO_EN, 1)
 	else
-		--switch off
-		log.trace("turning offfffffff")
-
-		gpio.write(GPIOVOLTEO_UP, 0)
-		gpio.write(GPIOVOLTEO_DOWN, 0)
-		gpio.write(GPIOVOLTEO_EN, 0)
+		M.do_not_rotate()
 	end
 end -- function end
 

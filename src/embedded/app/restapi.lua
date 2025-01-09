@@ -57,7 +57,7 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 		a_temperature = string.format("%.2f", a_temperature),
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),
-		wifi_status = configurator.WiFi.ONLINE == 1 and "connected" or "disconnected",
+		wifi_status = configurator.WiFi.online == 1 and "connected" or "disconnected",
 		rotation = restapi.incubator.rotation_enabled or restapi.incubator.rotation_activated
 	}
 	

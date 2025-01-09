@@ -346,7 +346,7 @@ rotateandgettimes_timer:start()
 
 
 
--- apiserver.init_module(incubator, configurator)
+apiserver.init_module(incubator, configurator)
 -- incubator.enable_testing(false)
 
 ------------------------------------------------------------------------------------

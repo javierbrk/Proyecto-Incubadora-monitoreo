@@ -1,6 +1,7 @@
 local restapi = {
 	incubator = nil,
 	configurator = require("configurator"),
+	scan_in_progress = false
 }
 
 -------------------------------------
@@ -76,6 +77,7 @@ local response_data = {
 }
 
 function restapi.scan_callback(err, arr)
+	restapi.scan_in_progress = false
 
 	if err then
 			response_data = {
@@ -99,13 +101,16 @@ function restapi.scan_callback(err, arr)
 end
 	
 function restapi.wifi_scan_get(req)
-	wifi.sta.scan({ hidden = 1 }, restapi.scan_callback)
+	if not restapi.scan_in_progress then
+		restapi.scan_in_progress = true
+		wifi.sta.scan({ hidden = 1 }, restapi.scan_callback)
+	end
 	
 	local response_json = sjson.encode(response_data)
 	return {
-	status = "200 OK",
-	type = "application/json",
-	body = response_json
+		status = "200 OK",
+		type = "application/json",
+		body = response_json
 	}
 end
 function restapi.do_rotation(req)

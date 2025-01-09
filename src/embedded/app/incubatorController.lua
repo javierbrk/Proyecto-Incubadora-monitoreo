@@ -254,6 +254,18 @@ function rotate()
 end
 
 
+
+------------------------------------------------------------------------------------
+-- ! @function incubator.init_values           start incubator values
+-- ! @function incubator.init_module           start the incubator modules
+-- ! @function incubator.init_testing          set test mode
+
+-- ! @param incubator
+------------------------------------------------------------------------------------
+
+incubator.init_values()
+configurator.init_module(incubator)
+
 ------------------------------------------------------------------------------------
 -- ! timers
 ------------------------------------------------------------------------------------
@@ -262,7 +274,7 @@ rotate_half_timer = tmr.create()
 stoprotation = tmr.create()
 abortrotation = tmr.create()
 
-local send_data_timer = tmr.create()
+send_data_timer = tmr.create()
 send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
 -- send_data_timer:start()
 
@@ -318,16 +330,6 @@ function rotateandgettimes()
     end
 end
 
-------------------------------------------------------------------------------------
--- ! @function incubator.init_values           start incubator values
--- ! @function incubator.init_module           start the incubator modules
--- ! @function incubator.init_testing          set test mode
-
--- ! @param incubator
-------------------------------------------------------------------------------------
-
-incubator.init_values()
-configurator.init_module(incubator)
 
 if gpio.read(GPIOREEDS_UP) == 1 and gpio.read(GPIOREEDS_DOWN) == 1 then
     --encontrar un sensor
@@ -354,21 +356,21 @@ incubator.enable_testing(false)
 ------------------------------------------------------------------------------------
 
 
-stoprotation = tmr.create()
-abortrotation = tmr.create()
+-- stoprotation = tmr.create()
+-- abortrotation = tmr.create()
 
-local send_data_timer = tmr.create()
-send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
--- send_data_timer:start()
+-- send_data_timer = tmr.create()
+-- send_data_timer:register(10000, tmr.ALARM_AUTO, read_and_send_data)
+-- -- send_data_timer:start()
 
-temp_control_timer = tmr.create()
-temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
--- temp_control_timer:start()
+-- temp_control_timer = tmr.create()
+-- temp_control_timer:register(3000, tmr.ALARM_AUTO, read_and_control)
+-- -- temp_control_timer:start()
 
-rotation = tmr.create()
-rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
--- rotation:start()
+-- rotation = tmr.create()
+-- rotation:register(incubator.rotation_period, tmr.ALARM_AUTO, rotate)
+-- -- rotation:start()
 
--- local send_heap_uptime = tmr.create()
--- send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
--- send_heap_uptime:start()
+-- -- local send_heap_uptime = tmr.create()
+-- -- send_heap_uptime:register(30000, tmr.ALARM_AUTO, send_heap_and_uptime_grafana)
+-- -- send_heap_uptime:start()

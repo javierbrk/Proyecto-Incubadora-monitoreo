@@ -186,17 +186,17 @@ end
 -------------------------------------
 function M.humidifier_switch(status)
 	local current_time = M.get_uptime_in_sec()
-	log.warn("humidifier current_time " .. current_time)
+	log.trace("humidifier current_time " .. current_time)
 
 	if not M.humidifier_enabled then
 		--humidifier disabled, check for waiting_off time concluded
-		log.error("humidifier disabled ")
+		log.warn("humidifier disabled ")
 		if ((current_time - M.hum_turn_off_time) > M.humidifier_off_time) then
 			M.humidifier_enabled = true
-			log.warn("humidifier enabled time out expired")
+			log.trace("humidifier enabled time out expired")
 			if status then
 				if (not M.humidifier) then
-					log.warn("humidifier was off... turning on ")
+					log.trace("humidifier was off... turning on ")
 					--estaba apagado y lo prendo
 					M.hum_turn_on_time = current_time
 					M.humidifier = status
@@ -205,42 +205,40 @@ function M.humidifier_switch(status)
 		end
 	end
 
-	log.warn("humidifier enabled")
+	log.trace("humidifier enabled")
 	if status and M.humidifier_enabled then -- encender humidifier
 		if (not M.humidifier) then       -- estaba apagado
-			log.warn("humidifier was off... turning on ")
+			log.trace("humidifier was off... turning on ")
 
 			--estaba apagado y lo prendo
 			M.hum_turn_on_time = current_time
 			M.humidifier = status
 		else
 			--estaba pendido y sigue
-			log.warn("humidifier was on... turned on" .. M.hum_turn_on_time)
+			log.trace("humidifier was on... turned on" .. M.hum_turn_on_time)
 
-			log.warn("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
-			log.warn("humidifier was on... turning on.. time left " ..
+			log.trace("humidifier was on... turning on.. time transcurred " .. (current_time - M.hum_turn_on_time))
+			log.trace("humidifier was on... turning on.. time left " ..
 				(M.humidifier_max_on_time - (current_time - M.hum_turn_on_time)))
 			--verificar el tiempo maximo de on
 			if ((current_time - M.hum_turn_on_time) > M.humidifier_max_on_time) then
 				M.humidifier_enabled = false
 				M.humidifier = false
 				M.hum_turn_off_time = current_time
-				log.error("humidifier disabled beacuse time greater than max")
+				log.warn("humidifier disabled because time greater than max")
 			end
 		end
 	end
 
 	if status and M.humidifier_enabled then
 		-- logica negada
-		-- gpio.write(GPIOHUMID, 1)
 		gpio.write(GPIOHUMID, 0)
-		log.warn("humidifier pin turned on--------------------")
+		log.trace("humidifier pin turned on--------------------")
 	else
 		M.humidifier = false
 		-- logica negada
-		-- gpio.write(GPIOHUMID, 0)
 		gpio.write(GPIOHUMID, 1)
-		log.warn("humidifier pin turned off--------------------")
+		log.trace("humidifier pin turned off--------------------")
 	end -- if end
 end  -- function end
 

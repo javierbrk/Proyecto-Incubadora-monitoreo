@@ -58,7 +58,7 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),
 		wifi_status = configurator.WiFi.online == 1 and "connected" or "disconnected",
-		rotation = restapi.incubator.rotation_enabled or restapi.incubator.rotation_activated
+		rotation = restapi.incubator.rotation_enabled 
 	}
 	
 	local body_json = sjson.encode(body_data)

@@ -118,6 +118,7 @@ function stop_rot()
         log.trace("[R] rotation working :)")
     else
         log.error("[R] rotation error ----- sensors not activated after rotation")
+        incubator.rotation_enabled = false
         --send_alert_to_grafana
     end
 end

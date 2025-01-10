@@ -310,8 +310,8 @@ function rotateandgettimes()
     end
     if (controlervars.downtime > 0 and controlervars.uptime > 0) then
         rotateandgettimes_timer:unregister()
-        incubator.rotation_duration = math.max(controlervars.downtime,controlervars.uptime)*1000 + 1000 
-        log.trace("[R] Seting rotation duration to    ",  incubator.rotation_duration )
+        incubator.rotation_duration = math.max(controlervars.downtime,controlervars.uptime)*1000 + 3000
+        log.trace("[R] Setting rotation duration to    ",  incubator.rotation_duration )
         rotate_half_timer:register(controlervars.half, tmr.ALARM_SINGLE, function()
             incubator.rotation_switch(false)
             log.trace("[R] Finished rotating half for ...   ", controlervars.half)

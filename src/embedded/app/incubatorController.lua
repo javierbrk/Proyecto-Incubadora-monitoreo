@@ -57,7 +57,7 @@ function is_temp_changing(temperature)
         end
         vant = v
     end
-    --temp is not changin
+    --temp is not changing
     return false
 end
 
@@ -67,19 +67,37 @@ end
 -- ! @param min_temp 							 temperature at which the resistor turns on
 -- ! @param,max_temp 							 temperature at which the resistor turns off
 ------------------------------------------------------------------------------------
+
+resistor_on_counter=0
+resistor_on_tmp=0
+
 function temp_control(temperature, min_temp, max_temp)
-    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp)
+    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. "resistor temp".. resistor_on_tmp)
+    if resistor_on_counter == 0 then
+        resistor_on_tmp = temperature
+    end
+    --if the temperature is not increasing after 30 cycles, send an alert
+    if resistor_on_counter == 30 then
+        if temperature > resistor_on_tmp+0.2 then
+            log.trace("[T] temperature is increasing")
+        else
+            log.addError("temperature","[T] temperature is not increasing, is "..temperature.." was " .. resistor_on_tmp)
+        end
+        resistor_on_counter=0
+    end
 
     if temperature <= min_temp then
         if is_temp_changing(temperature) then
             log.trace("[T] temperature is changing")
             log.trace("[T] turn resistor on")
             incubator.heater(true)
+            resistor_on_counter=resistor_on_counter+1
         else
-            log.error("[T] temperature is not changing")
+            log.addError("temperature","[T] temperature is not changing")
             alerts.send_alert_to_grafana("temperature is not changing")
             log.trace("[T] turn resistor off")
             incubator.heater(false)
+            resistor_on_counter=0
         end
     elseif temperature >= max_temp then
         incubator.heater(false)
@@ -87,19 +105,43 @@ function temp_control(temperature, min_temp, max_temp)
     end -- end if
 end     -- end function
 
+hum_on_counter=0
+hum_on_hum=0
+    
 function hum_control(hum, min, max)
-    log.trace("[H] Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier))
+    log.trace("[H] Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. "count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
+    if hum_on_counter == 0 then
+        hum_on_hum = hum
+    end
+    --if the temperature is not increasing after 30 cycles, send an alert
+    if hum_on_counter == 30 then
+        if hum > hum_on_hum+0.2 then
+            log.trace("[H] humidity is increasing")
+        else
+            log.addError("humidity","[H] humidity is not increasing")
+        end
+        resistor_on_counter=0
+    end
+
+    
     if hum <= min then
         log.trace("[H] turn hum on")
         incubator.humidifier_switch(true)
+        hum_on_counter=hum_on_counter+1
     elseif hum >= max then
         log.trace("[H] turn hum off")
         incubator.humidifier_switch(false)
+        hum_on_counter=0
     else
         log.trace("[H] volver a llamar")
         incubator.humidifier_switch(incubator.humidifier)
+        if incubator.humidifier then
+            hum_on_counter=hum_on_counter+1
+        else
+            hum_on_counter=0
+        end
     end -- end if
-end     -- end function
+end     -- end functiofn
 
 function read_and_control()
     temp, hum, pres = incubator.get_values()
@@ -125,7 +167,7 @@ function stop_rot()
     if incubator.rotation_activated == true then
         log.trace("[R] rotation working :)")
     else
-        log.error("[R] rotation error ----- sensors not activated after rotation")
+        log.addError("rotation","[R] rotation error ----- sensors not activated after rotation")
         incubator.rotation_enabled = false
         --send_alert_to_grafana
     end
@@ -154,10 +196,10 @@ function trigger_rotation_off(pin, level)
                 --estoy arriba
                 if controlervars.demora > 0 then
                     controlervars.uptime = node.uptime() / 1000000 - controlervars.demora
-                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.downtime, " ",
+                    log.trace("GPIOREEDS_UP controlled vars------------", controlervars.downtime, " ",
                         controlervars.uptime, " ", controlervars.demora)
                 else
-                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.demora)
+                    log.trace("GPIOREEDS_UP controlled vars------------", controlervars.demora)
                 end
             elseif pin == GPIOREEDS_DOWN then
                 log.trace("[R]  GPIOREEDS_DOWN ", pin, level)
@@ -166,11 +208,11 @@ function trigger_rotation_off(pin, level)
                     log.trace("GPIOREEDS_DOWN controled vars------------", controlervars.downtime, " ",
                         controlervars.uptime, " ", controlervars.demora)
                 else
-                    log.trace("GPIOREEDS_UP controled vars------------", controlervars.demora)
+                    log.trace("GPIOREEDS_UP controlled vars------------", controlervars.demora)
                 end
             else
                 controlervars.rotation_enabled = false
-                log.error("[R] rotation disabed, sensors are not working")
+                log.addError("rotation","[R] rotation disabled, sensors are not working")
             end
         end
     end
@@ -197,7 +239,7 @@ function abortrotation_and_notify()
     if incubator.rotation_enabled then
         return
     else
-        log.error("[R] Fatalllllllllll rotation not working pin not de activated pin DOWN ",
+        log.addError("rotation","[R] Fatalllllllllll rotation not working pin not de activated pin DOWN ",
         gpio.read(GPIOREEDS_DOWN), ",UP ", gpio.read(GPIOREEDS_UP))
         incubator.rotation_switch(false)
     end
@@ -249,7 +291,7 @@ function rotate()
         -- wait a reasonable ammount of time, but just in case, if everything fails, stop rotation
         stoprotation:start()
     else
-        log.error("[R] rotation disabled, sensors are not working")
+        log.addError("rotation","[R] rotation disabled, sensors are not working")
     end
 end
 

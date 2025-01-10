@@ -78,7 +78,7 @@ function w:start_validation_timer()
 	self.validation_timer = tmr.create()
 	self.validation_timer:alarm(self.status.validation_timeout, tmr.ALARM_SINGLE, function()
 			if self.status.is_transitioning and self.online == 0 then
-					log.trace("[W] New credentials validation failed, reverting to previous configuration...")
+					log.addError("wifi","[W] New credentials validation failed, reverting to previous configuration...")
 					self.status.pending_fallback = true
                     --password may be nil but not ssid
 					if self.old_ssid then
@@ -201,7 +201,7 @@ local function wifi_disconnect_event(ev, info)
             w:reset_state()
             w:connect()
         else
-            log.error("[W] Maximum retries reached. Please check WiFi configuration.")
+            log.addError("wifi","[W] Maximum retries reached. Please check WiFi configuration.")
             w:reset_state()
             --if the router is down we want to reconnect immediately once it comes back online
             w:schedule_reconnect()

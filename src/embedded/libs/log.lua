@@ -10,6 +10,42 @@ local log = {
     _version = "0.1.0"
 }
 
+-- Initialize the error table
+log.errors = {
+    temperature = {},
+    humidity = {},
+    rotation = {},
+    wifi = {},
+    sensors = {}
+}
+
+function log.addError(errorType, message)
+    log.error(message)
+    if log.errors[errorType] ~= nil then
+        table.insert(log.errors[errorType], message)
+        -- Keep only the latest two messages
+        if #log.errors[errorType] > 2 then
+            table.remove(log.errors[errorType], 1) -- Remove the oldest message
+        end
+        print("Error added: [" .. errorType .. "] " .. message)
+    else
+        print("Invalid error type: " .. errorType)
+    end
+end
+
+function log.getErrors(errorType)
+    return log.errors[errorType] or {}
+end
+
+function log.printAllErrors()
+    for errorType, messages in pairs(log.errors) do
+        print(errorType .. " errors:")
+        for _, message in ipairs(messages) do
+            print("  - " .. message)
+        end
+    end
+end
+
 log.usecolor = true
 log.outfile = nil
 log.grafana = true

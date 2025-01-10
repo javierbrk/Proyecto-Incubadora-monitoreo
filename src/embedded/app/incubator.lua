@@ -75,11 +75,10 @@ function M.init_values()
 
 
 
-	--revisar estos valores inicliales
-	gpio.write(GPIOVOLTEO_UP, 1)
-	gpio.write(GPIOVOLTEO_DOWN, 1)
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
 	gpio.write(GPIOHUMID, 1)
-	gpio.write(GPIORESISTOR, 1)
+	gpio.write(GPIORESISTOR, 0)
 	gpio.write(GPIOVOLTEO_EN, 0)
 end -- end function
 
@@ -427,7 +426,7 @@ end     -- function end
 function M.set_incubator_name(new_incubator_name)
 if type(new_incubator_name) == "string" and #new_incubator_name <= 30 then
 		M.incubator_name = new_incubator_name
-		INICIALES = incubator.name
+		INICIALES = M.incubator_name
 		return true
 else
 		return false

@@ -75,11 +75,10 @@ function M.init_values()
 
 
 
-	--revisar estos valores inicliales
-	gpio.write(GPIOVOLTEO_UP, 1)
-	gpio.write(GPIOVOLTEO_DOWN, 1)
+	gpio.write(GPIOVOLTEO_UP, 0)
+	gpio.write(GPIOVOLTEO_DOWN, 0)
 	gpio.write(GPIOHUMID, 1)
-	gpio.write(GPIORESISTOR, 1)
+	gpio.write(GPIORESISTOR, 0)
 	gpio.write(GPIOVOLTEO_EN, 0)
 end -- end function
 

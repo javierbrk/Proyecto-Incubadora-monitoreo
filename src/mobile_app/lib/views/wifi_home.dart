@@ -48,8 +48,8 @@ class _WHomeState extends State<WHome> {
 
   Future<void> _connectToWifi(String ssid, String password) async {
     try {
-      if (ssid.isEmpty || password.isEmpty) {
-        throw ("SSID y contraseña no pueden estar vacíos");
+      if (ssid.isEmpty) {
+        throw ("La SSID no puede estar vacía");
       }
 
       // Construimos el JSON actualizado
@@ -100,11 +100,15 @@ class _WHomeState extends State<WHome> {
 
       // Después de enviar el JSON, verificamos el estado de la conexión
       Actual? actualStatus = await ApiService().getActual();
-
-      // Mostramos un mensaje dependiendo del estado del WiFi
-      String message = actualStatus?.wifiStatus == "connected"
-          ? "Contraseña correcta. Conexión exitosa."
-          : "Contraseña incorrecta. No se pudo conectar.";
+      
+      String message;
+      if (actualStatus?.wifiStatus == "connected") {
+        message = "Contraseña correcta. Conexión exitosa.";
+      } else if (actualStatus?.wifiStatus == "disconnected") {
+        message = "No se pudo conectar a la red. Verifique las credenciales.";
+      } else {
+        message = "Verifique la Conexión";
+      }
 
       // Mostramos un mensaje al usuario
       showDialog(

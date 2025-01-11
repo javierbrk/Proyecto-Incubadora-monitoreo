@@ -55,13 +55,13 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 	a_temperature, a_humidity, a_pressure = restapi.incubator.get_values()
 
 	local body_data = {
+		errors = log.errors,
 		a_temperature = string.format("%.2f", a_temperature),
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),
 		wifi_status = configurator.WiFi.online == 1 and "connected" or "disconnected",
 		rotation = restapi.incubator.rotation_enabled 
 	}
-	table.insert(body_data, log.errors)
 	
 	local body_json = sjson.encode(body_data)
 	return { status = "200 OK", type = "application/json", body = body_json }

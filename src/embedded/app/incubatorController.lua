@@ -72,16 +72,19 @@ resistor_on_counter=0
 resistor_on_tmp=0
 
 function temp_control(temperature, min_temp, max_temp)
-    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. "resistor temp".. resistor_on_tmp)
+    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
     if resistor_on_counter == 0 then
         resistor_on_tmp = temperature
     end
-    --if the temperature is not increasing after 30 cycles, send an alert
-    if resistor_on_counter == 30 then
+    if (temperature > max_temp + 4) then
+        log.addError("temperature","[T] temperature to hight" .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
+    end
+    --if the temperature is not increasing after 40 cycles, send an alert
+    if resistor_on_counter == 40 then
         if temperature > resistor_on_tmp+0.2 then
             log.trace("[T] temperature is increasing")
         else
-            log.addError("temperature","[T] temperature is not increasing, is "..temperature.." was " .. resistor_on_tmp)
+            log.addError("temperature","[T] temperature is not increasing is "..temperature.." was " .. resistor_on_tmp)
         end
         resistor_on_counter=0
     end
@@ -109,16 +112,20 @@ hum_on_counter=0
 hum_on_hum=0
     
 function hum_control(hum, min, max)
-    log.trace("[H] Humydity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. "count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
+    log.trace("[H] Humidity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. " count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
     if hum_on_counter == 0 then
         hum_on_hum = hum
     end
-    --if the temperature is not increasing after 30 cycles, send an alert
-    if hum_on_counter == 30 then
+    if (hum > max + 20) then
+        log.addError("humidity","[H] Humidity to hight" .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. " count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
+    end
+    --if humidity is not increasing after 40 cycles, send an alert
+    if hum_on_counter == 40 then
         if hum > hum_on_hum+0.2 then
             log.trace("[H] humidity is increasing")
         else
-            log.addError("humidity","[H] humidity is not increasing")
+            log.addError("humidity","[H] humidity is not increasing actual:".. hum .. " min:" .. min .. " max:" .. max  .. " count: "  .. hum_on_counter.. " hum old: ".. hum_on_hum)
+
         end
         resistor_on_counter=0
     end

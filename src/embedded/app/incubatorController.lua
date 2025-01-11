@@ -79,7 +79,7 @@ function temp_control(temperature, min_temp, max_temp)
     end
     --if the temperature is not increasing after 60 cycles, send an alert
     if resistor_on_counter == 60 then
-        if temperature > resistor_on_tmp+0.2 then
+        if temperature > resistor_on_tmp+0.05 then
             log.trace("[T] temperature is increasing")
         else
             log.addError("temperature","[T] temperature is not increasing is "..temperature.." was " .. resistor_on_tmp)

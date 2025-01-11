@@ -87,21 +87,24 @@ function temp_control(temperature, min_temp, max_temp)
         resistor_on_counter=0
     end
 
+    if incubator.resistor then
+        resistor_on_counter=resistor_on_counter+1
+    else
+        resistor_on_counter=0
+    end
+
     if temperature <= min_temp then
         if is_temp_changing(temperature) then
             log.trace("[T] temperature is changing")
             log.trace("[T] turn resistor on")
             incubator.heater(true)
-            resistor_on_counter=resistor_on_counter+1
         else
             log.addError("temperature","[T] temperature is not changing")
             log.trace("[T] turn resistor off")
             incubator.heater(false)
-            resistor_on_counter=0
         end
     elseif temperature >= max_temp then
         incubator.heater(false)
-        resistor_on_counter=0
         log.trace("[T] turn resistor off")
     end -- end if
 end     -- end function
@@ -123,28 +126,25 @@ function hum_control(hum, min, max)
             log.trace("[H] humidity is increasing")
         else
             log.addError("humidity","[H] humidity is not increasing actual:".. hum .. " min:" .. min .. " max:" .. max  .. " count: "  .. hum_on_counter.. " hum old: ".. hum_on_hum)
-
         end
         resistor_on_counter=0
     end
 
-    
+    if incubator.humidifier and incubator.humidifier_enabled then
+        hum_on_counter=hum_on_counter+1
+    else
+        hum_on_counter=0
+    end
+
     if hum <= min then
         log.trace("[H] turn hum on")
         incubator.humidifier_switch(true)
-        hum_on_counter=hum_on_counter+1
     elseif hum >= max then
         log.trace("[H] turn hum off")
         incubator.humidifier_switch(false)
-        hum_on_counter=0
     else
         log.trace("[H] volver a llamar")
         incubator.humidifier_switch(incubator.humidifier)
-        if incubator.humidifier then
-            hum_on_counter=hum_on_counter+1
-        else
-            hum_on_counter=0
-        end
     end -- end if
 end     -- end functiofn
 

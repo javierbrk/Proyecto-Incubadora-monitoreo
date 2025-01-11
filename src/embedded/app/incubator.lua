@@ -156,12 +156,10 @@ function M.assert_conditions()
 	log.trace("temp actual ", M.temperature, ", max ", M.max_temp, ",min ", M.min_temp, ",resitor status ", M.resistor)
 	if M.is_testing then
 		if (M.temperature > M.max_temp and M.resistor) then
-			alerts.send_alert_to_grafana("temperature > max_temp and resistor is on")
 			log.addError("temperature","temperature > max_temp and resistor is on")
 			--assert(not M.resistor)
 		end --if end
 		if (M.temperature < M.min_temp and not M.resistor) then
-			alerts.send_alert_to_grafana("temperature < M.min_temp and resistor is off")
 			log.addError("temperature","temperature < M.min_temp and resistor is off")
 			--assert(M.resistor)
 		end --if end

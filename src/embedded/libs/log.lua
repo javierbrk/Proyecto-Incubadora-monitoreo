@@ -22,14 +22,13 @@ log.errors = {
 function log.addError(errorType, message)
     log.error(message)
     if log.errors[errorType] ~= nil then
-        table.insert(log.errors[errorType], message)
+        table.insert(log.errors[errorType], message..","..string.format("%.0f", ((time.get()) * 1000000000)))
         -- Keep only the latest two messages
         if #log.errors[errorType] > 2 then
             table.remove(log.errors[errorType], 1) -- Remove the oldest message
         end
-        print("Error added: [" .. errorType .. "] " .. message)
     else
-        print("Invalid error type: " .. errorType)
+        log.error("Invalid error type: " .. errorType)
     end
 end
 

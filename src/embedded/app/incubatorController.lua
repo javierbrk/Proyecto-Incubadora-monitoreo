@@ -10,13 +10,11 @@
 -----------------------------------------------------------------------------
 require("credentials")
 require("SendToGrafana")
-alerts = require("alerts")
 incubator = require("incubator")
 apiserver = require("restapi")
 deque = require ('deque')
 log = require ('log')
 configurator = require('configurator')
-
 
 --log.level = "debug"
 --log.usecolor=false
@@ -97,7 +95,6 @@ function temp_control(temperature, min_temp, max_temp)
             resistor_on_counter=resistor_on_counter+1
         else
             log.addError("temperature","[T] temperature is not changing")
-            alerts.send_alert_to_grafana("temperature is not changing")
             log.trace("[T] turn resistor off")
             incubator.heater(false)
             resistor_on_counter=0

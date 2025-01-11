@@ -119,7 +119,7 @@ function M.get_values()
 				M.temperature = 99.9
 				M.humidity = 99.9
 				M.pressure = 99.9
-				log.addError("temperature","temperature is not changing")
+				log.addError("temperature","temperature is out of range T:"..sensor.temperature / 100 )
 				--try to restart bme
 			else
 				M.temperature = (sensor.temperature / 100)

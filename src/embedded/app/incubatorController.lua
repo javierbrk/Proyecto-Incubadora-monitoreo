@@ -101,6 +101,7 @@ function temp_control(temperature, min_temp, max_temp)
         end
     elseif temperature >= max_temp then
         incubator.heater(false)
+        resistor_on_counter=0
         log.trace("[T] turn resistor off")
     end -- end if
 end     -- end function

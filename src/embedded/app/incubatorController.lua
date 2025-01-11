@@ -70,15 +70,15 @@ resistor_on_counter=0
 resistor_on_tmp=0
 
 function temp_control(temperature, min_temp, max_temp)
-    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
+    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. " count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
     if resistor_on_counter == 0 then
         resistor_on_tmp = temperature
     end
     if (temperature > max_temp + 4) then
-        log.addError("temperature","[T] temperature to hight" .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. "count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
+        log.addError("temperature","[T] temperature to hight" .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. " count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
     end
-    --if the temperature is not increasing after 40 cycles, send an alert
-    if resistor_on_counter == 40 then
+    --if the temperature is not increasing after 60 cycles, send an alert
+    if resistor_on_counter == 60 then
         if temperature > resistor_on_tmp+0.2 then
             log.trace("[T] temperature is increasing")
         else

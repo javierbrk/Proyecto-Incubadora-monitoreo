@@ -43,7 +43,7 @@ local M = {
 	tray_three_date = 0,
 	incubation_period = 0,
 	hash = 1235,
-	incubator_name = string.format("incubadora-%s",wifi.sta.getmac()),
+	incubator_name = string.format("incu-%s",wifi.sta.getmac()),
 	rotate_up                       = true,
 	rotation_enabled				= true,
     rotation_activated 				= false
@@ -115,14 +115,11 @@ function M.get_values()
 		M.startbme()
 		if M.is_sensorok then
 			sensor.read()
-			print("temp ", sensor.temperature)
 			if (sensor.temperature / 100) < -40 or (sensor.temperature / 100) > 86 then
 				M.temperature = 99.9
 				M.humidity = 99.9
 				M.pressure = 99.9
-				print("[!] Failed to read bme, Please check the cables and connections.")
-				alerts.send_alert_to_grafana("[!] Failed to read bme, Please check the cables and connections.")
-				log.error("temperature is not changing")
+				log.addError("temperature","temperature is out of range T:"..sensor.temperature / 100 )
 				--try to restart bme
 			else
 				M.temperature = (sensor.temperature / 100)
@@ -133,9 +130,7 @@ function M.get_values()
 			M.temperature = 99.9
 			M.humidity = 99.9
 			M.pressure = 99.9
-			log.error("Failed to start bme, Please check the cables and connections.")
-			alerts.send_alert_to_grafana("[!] Failed to start bme, Please check the cables and connections.")
-			print("[!] Failed to start bme, Please check the cables and connections.")
+			log.addError("sensors","Failed to start bme, Please check the cables and connections.")
 		end -- end if
 	end --if end
 
@@ -161,13 +156,11 @@ function M.assert_conditions()
 	log.trace("temp actual ", M.temperature, ", max ", M.max_temp, ",min ", M.min_temp, ",resitor status ", M.resistor)
 	if M.is_testing then
 		if (M.temperature > M.max_temp and M.resistor) then
-			alerts.send_alert_to_grafana("temperature > max_temp and resistor is on")
-			log.error("temperature > max_temp and resistor is on")
+			log.addError("temperature","temperature > max_temp and resistor is on")
 			--assert(not M.resistor)
 		end --if end
 		if (M.temperature < M.min_temp and not M.resistor) then
-			alerts.send_alert_to_grafana("temperature < M.min_temp and resistor is off")
-			log.error("temperature < M.min_temp and resistor is off")
+			log.addError("temperature","temperature < M.min_temp and resistor is off")
 			--assert(M.resistor)
 		end --if end
 	end -- if is_testing
@@ -295,7 +288,7 @@ function M.rotation_change_dir()
 		M.rotate_up = true
 	else
 		--something is wrong, invert rotation
-		log.error("gpio reeds not active inverting rotation just in case")
+		log.warn("rotation","rotation started and gpio reeds not active inverting rotation just in case")
 		M.rotate_up = not M.rotate_up
 	end
 end

@@ -14,17 +14,19 @@ local w = {
     sta_cfg = {
         ip = '192.168.16.10',
         netmask = '255.255.255.0',
-        gateway = '192.168.16.1',
-        dns = '8.8.8.8'
+        gateway = '192.168.16.10',
+        dns = '0.0.0.0'
     },
     ap_config = {
-        ssid = "incubator",
+        ssid = "incu-"..string.gsub(wifi.sta.getmac(),":",""),
+        --ssid must be unique
         pwd = "12345678",
         auth = wifi.AUTH_WPA2_PSK
     },
     station_cfg = {
-        ssid = "default_ssid",
-        pwd = "default_pwd",
+        --when loading saved config default credentials are used as valid.
+        ssid = nil,
+        pwd = nil,
         scan_method = "all"
     },
     -- State management
@@ -48,7 +50,7 @@ local w = {
 
 local function format_ip(ip)
     return string.format(
-        "IP: %s\nNetmask: %s\nGateway: %s\nDNS: %s",
+        "[W] IP: %s\nNetmask: %s\nGateway: %s\nDNS: %s",
         ip.ip or "N/A",
         ip.netmask or "N/A",
         ip.gw or "N/A",
@@ -76,16 +78,16 @@ function w:start_validation_timer()
 	self.validation_timer = tmr.create()
 	self.validation_timer:alarm(self.status.validation_timeout, tmr.ALARM_SINGLE, function()
 			if self.status.is_transitioning and self.online == 0 then
-					log.trace("New credentials validation failed, reverting to previous configuration...")
+					log.addError("wifi","[W] New credentials validation failed, reverting to previous configuration...")
 					self.status.pending_fallback = true
-					
-					if self.old_ssid and self.old_passwd then
-							self:set_new_ssid(self.old_ssid)
-							self:set_passwd(self.old_passwd)
-							self.old_ssid = nil
-							self.old_passwd = nil
-							self:reset_state()
-							self:connect()
+                    --password may be nil but not ssid
+					if self.old_ssid then
+                        self:set_new_ssid(self.old_ssid)
+                        self:set_passwd(self.old_passwd)
+                        self.old_ssid = nil
+                        self.old_passwd = nil
+                        self:reset_state()
+                        self:connect()
 					end
 			end
 	end)
@@ -126,6 +128,11 @@ function w:schedule_reconnect()
 end
 
 function w:connect()
+    --if no credentials configured then do not connect
+    if self.station_cfg.ssid == nil and self.station_cfg.pwd == nil then
+        log.trace("[W] No WiFi credentials provided. Please configure WiFi settings.")
+        return
+    end
     wifi.sta.disconnect()
     wifi.sta.config(self.station_cfg, true)
     wifi.sta.connect()
@@ -137,8 +144,8 @@ end
 
 local function wifi_connect_event(ev, info)
     w.current_retry = 0
-    log.trace(string.format("Connection to AP %s established!", tostring(info.ssid)))
-    log.trace("Waiting for IP address...")
+    log.trace(string.format("[W] Connection to AP %s established!", tostring(info.ssid)))
+    log.trace("[W] Waiting for IP address...")
 end
 
 local function wifi_got_ip_event(ev, info)
@@ -149,10 +156,10 @@ local function wifi_got_ip_event(ev, info)
         w:reset_state()
         w.old_ssid = nil
         w.old_passwd = nil
-        log.trace("New credentials validated successfully")
+        log.trace("[W] New credentials validated successfully")
     end
     
-    log.trace("Network Configuration:")
+    log.trace("[W] Network Configuration:")
     log.trace(format_ip(info))
     
     -- Setup NTP if not enabled
@@ -163,13 +170,13 @@ local function wifi_got_ip_event(ev, info)
         end
     end
     
-    log.trace("System is online and ready!")
+    log.trace("[W] System is online and ready!")
 end
 
 local function wifi_disconnect_event(ev, info)
     w.online = 0
     
-    log.trace(string.format("WiFi disconnected from AP(%s). Reason: %s", 
+    log.trace(string.format("[W] WiFi disconnected from AP(%s). Reason: %s", 
         info.ssid or "unknown",
         info.reason or "unknown"))
     
@@ -180,13 +187,13 @@ local function wifi_disconnect_event(ev, info)
     
     if w.current_retry < w.max_retries then
         w.current_retry = w.current_retry + 1
-        log.trace(string.format("Attempting reconnection... (%d/%d)", 
+        log.trace(string.format("[W] Attempting reconnection... (%d/%d)", 
             w.current_retry, 
             w.max_retries))
         w:schedule_reconnect()
     else
         if w.old_ssid and w.old_passwd and not w.status.is_transitioning then
-            log.trace("Maximum retries reached. Attempting to connect with previous credentials...")
+            log.trace("[W]Maximum retries reached. Attempting to connect with previous credentials...")
             w:set_new_ssid(w.old_ssid)
             w:set_passwd(w.old_passwd)
             w.old_ssid = nil
@@ -194,8 +201,10 @@ local function wifi_disconnect_event(ev, info)
             w:reset_state()
             w:connect()
         else
-            log.trace("Maximum retries reached. Please check WiFi configuration.")
+            log.addError("wifi","[W] Maximum retries reached. Please check WiFi configuration.")
             w:reset_state()
+            --if the router is down we want to reconnect immediately once it comes back online
+            w:schedule_reconnect()
         end
     end
 end
@@ -217,21 +226,21 @@ function w:init()
     
     -- Setup AP connection handler
     wifi.ap.on("sta_connected", function(event, info)
-        log.trace(string.format("Device connected to AP - MAC: %s, ID: %s", info.mac, info.id))
+        log.trace(string.format("[W] Device connected to AP - MAC: %s, ID: %s", info.mac, info.id))
     end)
     
     -- Start WiFi
     wifi.start()
     
     -- Configure station
-    if SSID and PASSWORD then
-        self.station_cfg.ssid = SSID
-        self.station_cfg.pwd = PASSWORD
-    end
-    
-    if INICIALES then
-        wifi.sta.sethostname(INICIALES .. "-ESP32")
-    end
+    -- if SSID and PASSWORD then
+    --     self.station_cfg.ssid = SSID
+    --     self.station_cfg.pwd = PASSWORD
+    -- end
+    -- Do not use credentials.lua file info anymore
+    -- if INICIALES then
+        wifi.sta.sethostname("incu-"..string.gsub(wifi.sta.getmac(),":",""))
+    -- end
     
     self:connect()
 end
@@ -239,7 +248,7 @@ end
 function w:on_change(new_config_table)
     if type(new_config_table) ~= "table" then return end
     if self.status.is_transitioning then
-        log.trace("Configuration change already in progress, please wait...")
+        log.trace("[W]Configuration change already in progress, please wait...")
         return
     end
     

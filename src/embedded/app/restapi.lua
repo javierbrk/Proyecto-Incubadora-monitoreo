@@ -55,6 +55,7 @@ function restapi.actual_ht(a_temperature, a_humidity, a_pressure)
 	a_temperature, a_humidity, a_pressure = restapi.incubator.get_values()
 
 	local body_data = {
+		errors = log.errors,
 		a_temperature = string.format("%.2f", a_temperature),
 		a_humidity = string.format("%.2f", a_humidity),
 		a_pressure = string.format("%.2f", a_pressure),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:incubapp_lite/models/actual_model.dart';
+import 'package:incubapp_lite/models/config_model.dart';
 import 'package:incubapp_lite/views/home.dart';
 import 'package:incubapp_lite/views/wifi_home.dart';
 import 'package:incubapp_lite/services/api_services.dart';
@@ -22,6 +23,7 @@ class IHome extends StatefulWidget {
 
 class _IHomeState extends State<IHome> {
   Actual? _actualModel;
+  Config? _configModel;
   int _selectedIndex = 0;
   bool _showConnectionError = false;
   
@@ -44,6 +46,7 @@ class _IHomeState extends State<IHome> {
   
   Future<void> _getData() async {
     _actualModel = await ApiService().getActual();
+    _configModel = await ApiService().getConfig();
     setState(() {});
   }
 
@@ -191,6 +194,11 @@ class _IHomeState extends State<IHome> {
     final humidity = _actualModel!.aHumidity;
     final wifiStatus = _actualModel!.wifiStatus;
     final rotation = _actualModel!.rotation;
+    
+    final maxtemp = _configModel!.maxTemperature;
+    final mintemp = _configModel!.minTemperature;
+    final maxhum = _configModel!.maxHum;
+    final minhum = _configModel!.minHum;
 
     return Scaffold(
       appBar: AppBar(
@@ -251,7 +259,7 @@ class _IHomeState extends State<IHome> {
                       icon: FontAwesomeIcons.temperatureHalf,
                       title: "Temperatura",
                       value: "$temperature˚C",
-                      valueColor: Tcolor(temperature),
+                      valueColor: Tcolor(temperature, maxtemp, mintemp),
                       size: size,
                     ),
                   ),
@@ -261,7 +269,7 @@ class _IHomeState extends State<IHome> {
                       icon: FontAwesomeIcons.droplet,
                       title: "Humedad",
                       value: "$humidity%",
-                      valueColor: Hcolor(humidity),
+                      valueColor: Hcolor(humidity, maxhum, minhum),
                       size: size,
                     ),
                   ),
@@ -394,20 +402,20 @@ class _IHomeState extends State<IHome> {
   }
 }
 
-Color Tcolor(temperature) {
+Color Tcolor(temperature, double maxTemp, double minTemp) {
   if (temperature <= 0) {
-    return Colors.yellow;
-  } else if (temperature <= 38 && temperature >= 36.5) {
+    return Colors.red;
+  } else if (temperature <= maxTemp && temperature >= minTemp) {
     return Colors.lightGreenAccent;
   } else {
     return Colors.red;
   }
 }
 
-Color Hcolor(humidity) {
+Color Hcolor(humidity, int maxHum, int minHum) {
   if (humidity <= 0) {
     return Colors.red;
-  } else if (humidity <= 70.0 && humidity >= 55.0) {
+  } else if (humidity <= maxHum && humidity >= minHum) {
     return Colors.lightGreenAccent;
   } else {
     return Colors.red;

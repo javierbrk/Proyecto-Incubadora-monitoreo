@@ -63,6 +63,7 @@ TODO: Implement as a post-power-on self-test or in a app command
 We are using motor A inputs. So the first thing to test is the digital inputs.
 Leave  a jumper in EN_A like the picture and remove the jumper from EN_B.
 Use the other pin from EN_B witch should be in a logical 1 state to activate "in 1" first and then "in 2". Just conect a Female to Female wire betwen the pins and watch the engine rotate in both directions. 
+
 ![image](https://github.com/user-attachments/assets/b765ac1c-f950-4181-acb7-85e7f522a67b)
 
 

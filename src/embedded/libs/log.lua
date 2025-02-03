@@ -107,7 +107,7 @@ function log.send_to_grafana(message)
 end -- * send_data_grafana end
 
 -- Function to send notification through NTFY
-function log.ntfy(alert)
+function log.send_to_ntfy(alert)
 	-- Check if NTFY is properly configured
 	if not log.ntfy_enabled or not log.ntfy_url then
 		print("NTFY not enabled or URL not set")

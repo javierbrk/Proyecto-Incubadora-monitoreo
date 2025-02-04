@@ -50,6 +50,9 @@ log.outfile = nil
 log.grafana = true
 log.level = "trace"
 log.x86 = false
+log.ntfy_enabled = true -- Enable sending notifications through ntfy
+--hardcoded url to make sure it is unique
+log.ntfy_url = "http://ntfy.sh/" .. "incu-"..string.gsub(wifi.sta.getmac(),":","")
 
 local modes = {{
     name = "trace",
@@ -102,6 +105,30 @@ function log.send_to_grafana(message)
        end
    end) -- * post function end
 end -- * send_data_grafana end
+
+-- Function to send notification through NTFY
+function log.send_to_ntfy(alert)
+	-- Check if NTFY is properly configured
+	if not log.ntfy_enabled or not log.ntfy_url then
+		print("NTFY not enabled or URL not set")
+		return
+	end
+
+	local headers = {
+		["Content-Type"] = "text/plain"
+	}
+
+	-- Send POST request to NTFY
+	http.post(log.ntfy_url, {
+		headers = headers
+	}, alert, function(code_return, _)
+		if code_return ~= 200 then
+			log.trace("Failed to send notification: " .. code_return)
+		else
+			log.trace("Notification sent successfully")
+		end
+	end)
+end
 
 local levels = {}
 for i, v in ipairs(modes) do
@@ -160,6 +187,10 @@ for i, x in ipairs(modes) do
             log.send_to_grafana(string.format("[%-6s%s] %s: %s\n", nameupper, strtime, lineinfo, msg))
         end
 
+        -- Send error logs to NTFY if enabled
+        if log.ntfy_enabled and log.ntfy_url and nameupper == "ERROR" then
+                log.send_to_ntfy(string.format("[%-6s%s] %s: %s\n",nameupper, strtime, lineinfo, msg))
+		end
         -- Output to log file
         if log.outfile then
             local fp = io.open(log.outfile, "a")

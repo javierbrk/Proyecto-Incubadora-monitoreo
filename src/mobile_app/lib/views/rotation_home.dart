@@ -1,14 +1,12 @@
-import 'package:incubapp_lite/models/wifi_model.dart';
-import 'package:incubapp_lite/models/actual_model.dart';
-import 'package:incubapp_lite/models/config_model.dart';
 import 'package:incubapp_lite/services/api_services.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:incubapp_lite/views/initial_home.dart';
 import 'package:incubapp_lite/views/home.dart';
 import 'package:incubapp_lite/views/counter_home.dart';
 import 'package:incubapp_lite/views/graf_home.dart';
 import 'package:incubapp_lite/views/wifi_home.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 
 
 class RHome extends StatefulWidget {
@@ -19,26 +17,141 @@ class RHome extends StatefulWidget {
 class _RHomeState extends State<RHome> {
 
   int _selectedIndex = 0;
-  
+  bool _showConnectionError = false;
+  bool _isConnected = false;
+
   @override
-  
+  void initState() {
+    super.initState();
+    _checkConnection();
+    _startConnectionTimer();
+  }
+
+  void _startConnectionTimer() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!_isConnected && mounted) {
+        setState(() {
+          _showConnectionError = true;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkConnection() async {
+    try {
+      final actualStatus = await ApiService().getActual();
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+          _showConnectionError = false;
+        });
+      }
+    } catch (e) {
+      print(e);
+      if (mounted) {
+        setState(() {
+          _isConnected = false;
+        });
+      }
+    }
+  }
+
+  void _retryConnection() {
+    setState(() {
+      _showConnectionError = false;
+      _isConnected = false;
+    });
+    _checkConnection();
+    _startConnectionTimer();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rotación'),
+        title: const Text('Rotación'),
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
       backgroundColor: const Color.fromRGBO(65, 65, 65, 1),
-      body: Center(
-        child: Text(
-          'mimimi',
-          style: GoogleFonts.questrial(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-      ),
-      
+      body: !_isConnected
+          ? Center(
+              child: _showConnectionError 
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Verifique conexión con incubadora',
+                        style: GoogleFonts.questrial(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _retryConnection,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15,
+                          ),
+                        ),
+                        child: const Text('Reintentar'),
+                      ),
+                    ],
+                  )
+                : const CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
+            )
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await ApiService().sendRotation('up');
+                        print("Comando de rotación hacia arriba enviado");
+                      } catch (e) {
+                        print("Error al enviar comando: $e");
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(15),
+                      backgroundColor: Colors.white70,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_drop_up,
+                      color: Colors.black54,
+                      size: 50,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await ApiService().sendRotation('down');
+                        print("Comando de rotación hacia abajo enviado");
+                      } catch (e) {
+                        print("Error al enviar comando: $e");
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(15),
+                      backgroundColor: Colors.white70,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.black54,
+                      size: 50,
+                    ),
+                  ),
+                ],
+              ),
+            ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -77,7 +190,7 @@ class _RHomeState extends State<RHome> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _selectedIndex = index;  
     });
 
     switch (index) {

@@ -4,44 +4,13 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:incubapp_lite/models/actual_model.dart';
 import 'package:incubapp_lite/utils/constants.dart';
-import 'package:incubapp_lite/models/max_temp_model.dart';
-import 'package:incubapp_lite/models/min_temp_model.dart';
-import 'package:incubapp_lite/models/version_model.dart';
-import 'package:incubapp_lite/models/rotation_model.dart';
 import 'package:incubapp_lite/models/wifi_model.dart';
 import 'package:incubapp_lite/models/config_model.dart';
 
 // logica para consumo de datos en la api
 
 class ApiService {
-  Future<Maxtemp?> getMaxtemp() async {
-    try {
-      var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.maxTempEndPoint);
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        Maxtemp model = maxtempFromJson(response.body);
-        return model;
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    return null;
-  }
-
-  Future<Mintemp?> getMintemp() async {
-    try {
-      var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.minTempEndPoint);
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        Mintemp model = mintempFromJson(response.body);
-        return model;
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    return null;
-  }
-
+  
   Future<Wifi?> getWifi() async {
     try {
       var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.wifiEndPoint);
@@ -56,32 +25,29 @@ class ApiService {
     return null;
   }
 
-  Future<Rotation?> getRotation() async {
+  Future<void> sendRotation(String direction) async {
     try {
-      var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.rotationEndPoint);
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        Rotation model = rotationFromJson(response.body);
-        return model;
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    return null;
-  }
+      final url = ApiConstants.baseUrl + ApiConstants.rotationEndPoint;
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'move': direction
+        }),
+      );
 
-  Future<Version?> getVersion() async {
-    try {
-      var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.versionEndPoint);
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        Version model = versionFromJson(response.body);
-        return model;
+      print('Status Code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode != 201) {
+        throw Exception('Error al enviar comando de rotación');
       }
     } catch (e) {
-      log(e.toString());
+      print('Error: $e');
+      rethrow;
     }
-    return null;
   }
 
   Future<Actual?> getActual() async {
@@ -145,5 +111,24 @@ class ApiService {
       print('Error en la llamada a la API: $e');
     }
     return null;
+  }
+
+  Future<void> subscribeToNtfyChannelFromConfig(String topic) async {
+    try {
+      print("Intentando suscribirse al canal: $topic");
+      var url = Uri.parse("https://ntfy.sh/$topic");
+      var request = http.Request("GET", url);
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        response.stream.transform(utf8.decoder).listen((data) {
+          print("Notificación recibida: $data");
+        });
+      } else {
+        print("Error al suscribirse al canal: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Excepción al suscribirse: $e");
+    }
   }
 }

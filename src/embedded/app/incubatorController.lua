@@ -70,6 +70,7 @@ temp_history = {0, 0, 0, 0, 0}
 resistor_on_counter = 0
 resistor_on_tmp = 0
 resistor_on_derivative = 0  -- Store first derivative when heater was turned ON
+low_derivative_count = 0
 
 function first_precise_centered_derivative()
     -- f'(t) = (-T[n+2] + 8T[n+1] - 8T[n-1] + T[n-2]) / 12
@@ -104,11 +105,20 @@ function temp_control(temperature, min_temp, max_temp)
     end
 
     -- Check if the temperature is increasing effectively
+    local tolerance = 0.002  -- Small tolerance to allow minor fluctuations
+    local low_derivative_limit = 3  -- Require up to 3 consecutive low values before triggering an error
+    
     if resistor_on_counter == 30 then
-        if temp_rate > resistor_on_derivative then
+        if temp_rate > (resistor_on_derivative - tolerance) then
             log.trace("[T] temperature is increasing properly !!!!!")
+            low_derivative_count = 0  -- Reset the counter if temperature is increasing
         else
-            log.addError("temperature", "[T] temperature is not increasing enough.. derivative: " .. temp_rate" < " .. resistor_on_derivative)
+            low_derivative_count = low_derivative_count + 1
+            if low_derivative_count >= low_derivative_limit then
+                log.addError("temperature", "[T] temperature is not increasing enough.. derivative: " ..
+                             temp_rate .. " < " .. resistor_on_derivative)
+                low_derivative_count = 0  -- Reset after logging the error
+            end
         end
         resistor_on_counter = 0
     end

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 local tables = require("tables") 
 local http_request_methods = require("http_request_methods")
 local colors = require("ansicolors")

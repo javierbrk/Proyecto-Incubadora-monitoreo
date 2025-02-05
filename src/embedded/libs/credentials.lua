@@ -19,7 +19,7 @@ GPIOREEDS_DOWN = 34
 --GPIOBMESDA = 16
 --GPIOBMESCL = 0
 
---outputs
+--outputs resistor can be 14, or 27
 GPIORESISTOR=14
 GPIOHUMID = 17
 

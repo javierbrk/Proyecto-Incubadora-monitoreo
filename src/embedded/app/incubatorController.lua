@@ -66,25 +66,61 @@ end
 -- ! @param,max_temp 							 temperature at which the resistor turns off
 ------------------------------------------------------------------------------------
 
-resistor_on_counter=0
-resistor_on_tmp=0
+temp_history = {0, 0, 0, 0, 0}
+resistor_on_counter = 0
+resistor_on_tmp = 0
+resistor_on_derivative = 0  -- Store first derivative when heater was turned ON
+low_derivative_count = 0
+
+function first_precise_centered_derivative()
+    -- f'(t) = (-T[n+2] + 8T[n+1] - 8T[n-1] + T[n-2]) / 12
+    return (-temp_history[5] + 8 * temp_history[4] - 8 * temp_history[2] + temp_history[1]) / 12
+end
 
 function temp_control(temperature, min_temp, max_temp)
-    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. " count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
+
+    -- Smooth temperature
+    smooth_temp = ( temp_history[4]+ temp_history[5]+ temperature) / 3
+
+    temp_history[1] = temp_history[2]
+    temp_history[2] = temp_history[3]
+    temp_history[3] = temp_history[4]
+    temp_history[4] = temp_history[5]
+    temp_history[5] = smooth_temp
+
+    -- Compute derivatives
+    local temp_rate = first_precise_centered_derivative()
+
+    log.trace("[T] temp " .. temperature .. " min:" .. min_temp .. " max:" .. max_temp ..
+              " count " .. resistor_on_counter .. " resistor on temp " .. resistor_on_tmp..
+              " temp_rate " .. temp_rate)
+
     if resistor_on_counter == 0 then
         resistor_on_tmp = temperature
+        resistor_on_derivative = temp_rate  -- Store first derivative when heater was turned ON
     end
-    if (temperature > max_temp + 4) then
-        log.addError("temperature","[T] temperature to hight" .. temperature .. " min:" .. min_temp .. " max:" .. max_temp .. " count "  .. resistor_on_counter.. " resistor on temp ".. resistor_on_tmp)
+
+    if temperature > max_temp + 4 then
+        log.addError("temperature", "[T] temperature too high: " .. temperature)
     end
-    --if the temperature is not increasing after 60 cycles, send an alert
-    if resistor_on_counter == 60 then
-        if temperature > resistor_on_tmp+0.05 then
-            log.trace("[T] temperature is increasing")
+
+    -- Check if the temperature is increasing effectively
+    local tolerance = 0.002  -- Small tolerance to allow minor fluctuations
+    local low_derivative_limit = 3  -- Require up to 3 consecutive low values before triggering an error
+    
+    if resistor_on_counter == 30 then
+        if temp_rate > (resistor_on_derivative - tolerance) then
+            log.trace("[T] temperature is increasing properly !!!!!")
+            low_derivative_count = 0  -- Reset the counter if temperature is increasing
         else
-            log.addError("temperature","[T] temperature is not increasing is "..temperature.." was " .. resistor_on_tmp)
+            low_derivative_count = low_derivative_count + 1
+            if low_derivative_count >= low_derivative_limit then
+                log.addError("temperature", "[T] temperature is not increasing enough.. derivative: " ..
+                             temp_rate .. " < " .. resistor_on_derivative)
+                low_derivative_count = 0  -- Reset after logging the error
+            end
         end
-        resistor_on_counter=0
+        resistor_on_counter = 0
     end
 
     if incubator.resistor then
@@ -109,10 +145,55 @@ function temp_control(temperature, min_temp, max_temp)
     end -- end if
 end     -- end function
 
+
+    function get_days_since_start(start_date_ms)
+        if start_date_ms == 0 then return 0 end
+        
+        -- Current time in milliseconds
+        local current_time_ms = time.get() * 1000  -- Convert seconds to milliseconds
+        
+        -- Calculate elapsed time in days
+        local ms_per_day = 24 * 60 * 60 * 1000
+        local days_passed = math.floor((current_time_ms - start_date_ms) / ms_per_day)
+        
+        return days_passed
+    end
+    
+    function should_increase_humidity()
+        local tray_one_days = get_days_since_start(incubator.tray_one_date)
+        local tray_two_days = get_days_since_start(incubator.tray_two_date)
+        local tray_three_days = get_days_since_start(incubator.tray_three_date)
+        
+        -- Check if any tray is between day 18 and 21
+        local function is_in_high_humidity_period(days)
+            return days >= incubator.incubation_period and days <= 21
+        end
+        
+        log.trace(string.format("Days since start - Tray1: %d, Tray2: %d, Tray3: %d", 
+            tray_one_days, tray_two_days, tray_three_days))
+            
+        return is_in_high_humidity_period(tray_one_days) or
+               is_in_high_humidity_period(tray_two_days) or
+               is_in_high_humidity_period(tray_three_days)
+    end
+    
+    function get_adjusted_humidity_limits(base_min_hum, base_max_hum)
+        if should_increase_humidity() then
+            return base_min_hum + 10, base_max_hum + 10
+        end
+        return base_min_hum, base_max_hum
+    end
+    
+        
+
 hum_on_counter=0
 hum_on_hum=0
-    
+
 function hum_control(hum, min, max)
+    log.trace("[H] Humidity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. " count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
+
+    min, max = get_adjusted_humidity_limits(min, max)
+
     log.trace("[H] Humidity " .. hum .. " min:" .. min .. " max:" .. max .. " humidifier " .. tostring(incubator.humidifier) .. " count "  .. hum_on_counter.. " hum old ".. hum_on_hum)
     if hum_on_counter == 0 then
         hum_on_hum = hum
@@ -161,7 +242,7 @@ end -- end function
 ------------------------------------------------------------------------------------
 function read_and_send_data()
     temp, hum, pres = incubator.get_values()
-    send_data_grafana(incubator.temperature, incubator.humidity, incubator.pressure, INICIALES .. "-bme")
+    send_data_grafana(incubator.temperature, incubator.humidity, incubator.pressure, INICIALES)
 end -- read_and_send_data end
 
 ------------------------------------------------------------------------------------

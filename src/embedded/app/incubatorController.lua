@@ -124,7 +124,7 @@ function temp_control(temperature, min_temp, max_temp)
                 low_derivative_count = 0  -- Reset after logging the error
             end
         end
-        resistor_on_counter = 0
+        resistor_on_counter = -1 --if resistor is "on" it wont be 0 next time.
     end
 
     if incubator.resistor then

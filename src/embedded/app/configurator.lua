@@ -50,8 +50,8 @@ function configurator:create_config_file()
 			local config = {
 					rotation_duration = 50000,
 					rotation_period = 3600000,
-					min_temperature = 37.3,
-					max_temperature = 37.8,
+					min_temperature = 37.5,
+					max_temperature = 37.7,
 					tray_one_date = 0,
 					tray_two_date = 0,
 					tray_three_date = 0,

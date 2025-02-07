@@ -18,8 +18,8 @@ local M = {
 	pressure                        = 0, -- integer value of preassure [Pa]=[0.01 hPa]
 	humidity                        = 0, -- integer value of rel.humidity [0.01 %]
 	is_testing                      = false,
-	max_temp                        = 37.8,
-	min_temp                        = 37.3,
+	max_temp                        = 37.7,
+	min_temp                        = 37.5,
 	is_sensorok                     = false,
 	is_simulate_temp_local          = false,
 	rotation_switch_deactivate_time = 10000, -- max amount of time the sensor is down when the incubator is moving in ms

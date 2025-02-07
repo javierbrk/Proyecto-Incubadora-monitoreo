@@ -1,15 +1,9 @@
------------------------------------------------------------------------------
---  This is the reference implementation to simulate the M.
---  this model implements an icubator whos ambient temperatura is always
---  below the control temperature. It also suposes tha when you turn on actuators
---  variables change.
---
--- Copyright (c) 2023  Javier Jorge <jjorge@inti.gob.ar>
--- todo: add jere annie santi ...
--- Copyright (c) 2023  Instituto Nacional de Tecnología Industrial
 -- Copyright (C) 2023  Asociación Civil Altermundi <info@altermundi.net>
+-- Copyright (c) 2023  Instituto Nacional de Tecnología Industrial
+-- Copyright (c) 2023  Javier Jorge <jjorge@inti.gob.ar>
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
 --
---  SPDX-License-Identifier: AGPL-3.0-only
+-- SPDX-License-Identifier: AGPL-3.0-only
 
 -----------------------------------------------------------------------------
 credentials = require('credentials')
@@ -28,14 +22,14 @@ local M = {
 	min_temp                        = 37.5,
 	is_sensorok                     = false,
 	is_simulate_temp_local          = false,
-	rotation_switch_deactivate_time = 10000, -- max ammount of time the sensor is down when the incubator is moving
-	rotation_duration               = 50000, -- max ammount of time the rotation should last
+	rotation_switch_deactivate_time = 10000, -- max amount of time the sensor is down when the incubator is moving in ms
+	rotation_duration               = 50000, -- max amount of time the rotation should last in ms
 	rotation_period                 = 3600000, -- time in ms
 	humidifier_enabled              = true,
-	max_hum                         = 70,
-	min_hum                         = 60,
-	humidifier_max_on_time          = 2, --sec
-	humidifier_off_time             = 120, -- sec
+	max_hum                         = 100,
+	min_hum                         = 1,
+	humidifier_max_on_time          = 2, -- sec !! 
+	humidifier_off_time             = 120, -- sec !! 
 	hum_turn_on_time                = 0,
 	hum_turn_off_time               = 0,
 	tray_one_date = 0,

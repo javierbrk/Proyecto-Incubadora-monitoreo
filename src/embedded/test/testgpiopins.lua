@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 gpio.config( { gpio={14,15,13}, dir=gpio.OUT })
 gpio.set_drive(13, gpio.DRIVE_3)
 gpio.set_drive(14, gpio.DRIVE_3)

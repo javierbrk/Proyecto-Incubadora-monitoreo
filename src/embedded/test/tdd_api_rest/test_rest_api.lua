@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- to exclude wifi
 -- busted --exclude-tags="wifi" ./test_rest_api.lua
 

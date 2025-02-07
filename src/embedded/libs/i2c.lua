@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- check if chip is present and functional by reading a signature/chip id
 
 -- i2c bus setup

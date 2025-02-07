@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 configurator =
 {
   incubator = {},
@@ -54,8 +58,8 @@ function configurator:create_config_file()
 					incubation_period = 0,
 					hash = "incu-"..string.gsub(wifi.sta.getmac(),":",""),
 					incubator_name = string.format("incu-"..string.gsub(wifi.sta.getmac(),":","")),
-					max_hum = 70,
-					min_hum = 60
+					max_hum = 65,
+					min_hum = 55
 			}
 			new_file:write(sjson.encode(config))
 			new_file:close()
@@ -112,9 +116,10 @@ function configurator:load_objects_data(new_config_table)
 		elseif param == "min_hum" then
 			status.min_hum = incubator.set_min_humidity(tonumber(value))
 		end -- if end 
-
+  
   end -- for end
 	configurator.WiFi:on_change(new_config_table)
+  log.trace("Configurator status: ", sjson.encode(status))
   return status
 end -- function end 
 

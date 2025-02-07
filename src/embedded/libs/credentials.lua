@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- This file is only a placeholder.
 -- Put your credentials here, and 
 -- rename the file to remove the underscore.
@@ -19,7 +23,7 @@ GPIOREEDS_DOWN = 34
 --GPIOBMESDA = 16
 --GPIOBMESCL = 0
 
---outputs
+--outputs resistor can be 14, or 27
 GPIORESISTOR=14
 GPIOHUMID = 17
 

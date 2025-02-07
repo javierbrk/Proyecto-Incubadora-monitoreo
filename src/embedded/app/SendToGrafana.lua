@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- ! Modules
 require('credentials')
 
@@ -40,7 +44,9 @@ M.response_heap = "esp_status,device=" .. INICIALES .. " up_time=" ..
 
 function create_grafana_message(temperature,humidity,pressure,INICIALES,time)
 	local data = "mediciones,device=" .. INICIALES .. " temp=" ..
-									temperature .. ",hum=" .. humidity .. ",press=" .. pressure .." " .. time
+									temperature .. ",hum=" .. humidity .. ",press=" .. 
+                  pressure ..",sDOWN="..gpio.read(GPIOREEDS_DOWN)..
+                  ",sUP=".. gpio.read(GPIOREEDS_UP).." " .. time
 	return data
 end
 

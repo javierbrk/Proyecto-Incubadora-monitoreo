@@ -1,8 +1,30 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 local restapi = {
 	incubator = nil,
 	configurator = require("configurator"),
-	scan_in_progress = false
+	scan_in_progress = false,
+	last_request_time = 0,  -- Tiempo de la última solicitud
+	min_delay = 1,  -- Delay mínimo entre solicitudes
 }
+
+-- Función para forzar el delay entre llamadas
+function restapi.forced_delay()
+    local current_time = time.get()
+    local elapsed = current_time - restapi.last_request_time
+    
+    if elapsed < restapi.min_delay then
+        -- Si no ha pasado suficiente tiempo, retornamos error
+		log.addError("wifi", "Forced delay: " .. elapsed .. " < " .. restapi.min_delay)
+        return false
+    end
+    
+    -- Actualizamos el tiempo de la última solicitud
+    restapi.last_request_time = current_time
+    return true
+end
 
 -------------------------------------
 -- ! @function change config   modify the current config.json file
@@ -26,8 +48,6 @@ function restapi.change_config_file(req)
 		return { status = "201 Created", type = "application/json", body = "JSON updated and encoded successfully" }
 	end
 end
-
-
 
 -------------------------------------
 -- ! @function config_get   get the current config.json parameters
@@ -115,6 +135,14 @@ function restapi.wifi_scan_get(req)
 	}
 end
 function restapi.do_rotation(req)
+	local can_proceed, error_message = restapi.forced_delay()
+    if not can_proceed then
+        return { 
+            status = "429 Too Many Requests", 
+            type = "application/json", 
+            body = error_message
+        }
+    end
 	local rotation = sjson.decode(req.getbody())
 	if rotation then
 		if rotation.move == "up" then

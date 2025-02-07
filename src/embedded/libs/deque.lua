@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 --- Deque implementation by Pierre 'catwell' Chapuis
 --- MIT licensed (see LICENSE.txt)
 

@@ -104,15 +104,19 @@ function temp_control(temperature, min_temp, max_temp)
         resistor_on_derivative = temp_rate  -- Store first derivative when heater was turned ON
     end
 
-    if temperature > max_temp + 4 then
-        log.addError("temperature", "[T] temperature too high: " .. temperature)
-    end
 
     -- Check if the temperature is increasing effectively
     local tolerance = 0.002  -- Small tolerance to allow minor fluctuations
     local low_derivative_limit = 3  -- Require up to 3 consecutive low values before triggering an error
-    
+        
     if resistor_on_counter == 30 then
+
+        if temperature > max_temp + 4 then
+            log.addError("temperature", "[T] temperature too high: " .. temperature)
+        else if temperature < min_temp - 4 then
+            log.addError("temperature", "[T] temperature too low: " .. temperature)
+        end
+        
         if temp_rate > (resistor_on_derivative - tolerance) then
             log.trace("[T] temperature is increasing properly !!!!!")
             low_derivative_count = 0  -- Reset the counter if temperature is increasing

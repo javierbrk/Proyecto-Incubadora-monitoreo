@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: MIT
+
 --[[
 bme280.lua for ESP8266 with nodemcu-firmware
   Read temperature, preassure and relative humidity from BME280 sensors

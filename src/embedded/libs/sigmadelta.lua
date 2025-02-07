@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 sigma_delta.setprescale(0, 128)
 --sigma_delta.setduty(channel, value)  value duty -128 to 127
 sigma_delta.setduty(0, 0)

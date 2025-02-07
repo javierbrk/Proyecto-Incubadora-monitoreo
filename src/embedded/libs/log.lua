@@ -1,11 +1,8 @@
---
--- log.lua
---
 -- Copyright (c) 2016 rxi
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
 --
--- This library is free software; you can redistribute it and/or modify it
--- under the terms of the MIT license. See LICENSE for details.
---
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 local log = {
     _version = "0.1.0"
 }

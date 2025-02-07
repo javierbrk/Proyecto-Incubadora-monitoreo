@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 info@altermundi.net
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Variables 
 local token = "bot5939549515:AAEvLJei-qmmEqIwNwvqNyT9Hrl0fhlvvKs"
 local idChat = "-1001767814361"

@@ -23,21 +23,28 @@ dependencies:
   webview_flutter: ^2.0.13
   flutter_inappwebview: ^5.3.2
   android_intent_plus: ^4.0.0
-  unifiedpush: ^3.0.1
+  meta: ^1.15.0
+  shared_preferences: ^2.5.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   
+  flutter_launcher_icons: ^0.13.1
 
   flutter_lints: ^2.0.0
 
+flutter_launcher_icons:
+
+  android: true
+  image_path: "assets/icono.png"
 
 
 flutter:
 
   assets:
     - assets/logo.png
+    - assets/icono.png
 
   uses-material-design: true
 

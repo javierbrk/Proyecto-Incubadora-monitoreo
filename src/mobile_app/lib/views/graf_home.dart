@@ -26,13 +26,13 @@ class _GHomeState extends State<GHome> {
   @override
   void initState() {
     super.initState();
-    _loadIncubadoraName();
+    _loadIncubatorHash();
   }
 
-  Future<void> _loadIncubadoraName() async {
-    final name = await _apiService.getIncubadoraName();
+  Future<void> _loadIncubatorHash() async {
+    final hash = await _apiService.getIncubatorHash();
     setState(() {
-      incubadoraId = name;
+      incubadoraId = hash;
     });
   }
 

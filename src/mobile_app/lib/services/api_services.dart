@@ -77,8 +77,8 @@ class ApiService {
       var response = await http.get(url);
       if (response.statusCode == 200) {
         Config model = configFromJson(response.body);
-        if (model.incubatorName != null) {
-          await saveIncubadoraName(model.incubatorName!);
+        if (model.hash != null) {
+          await saveIncubadoraName(model.hash!);
         }
         return model;
       } else {
@@ -94,7 +94,7 @@ class ApiService {
   Future<void> saveIncubadoraName(String name) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('incubadora_name', name);
+      await prefs.setString('incubadora_hash', name);
       print('Nombre de incubadora guardado: $name');
     } catch (e) {
       print('Error al guardar nombre de incubadora: $e');
@@ -102,12 +102,12 @@ class ApiService {
     }
   }
 
-  Future<String?> getIncubadoraName() async {
+  Future<String?> getIncubatorHash() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('incubadora_name');
+      return prefs.getString('incubadora_hash');
     } catch (e) {
-      print('Error al obtener nombre de incubadora: $e');
+      print('Error al obtener hash de incubadora: $e');
       log(e.toString());
       return null;
     }

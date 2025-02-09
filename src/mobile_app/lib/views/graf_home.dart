@@ -1,23 +1,13 @@
-import 'dart:io';                     
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 //import 'package:incubapp_lite/models/actual_model.dart';
 import 'package:incubapp_lite/views/home.dart';
-//import 'package:incubapp_lite/views/login.dart';
 import 'package:incubapp_lite/views/wifi_home.dart';
 import 'package:incubapp_lite/views/initial_home.dart';
-//import 'package:incubapp_lite/services/api_services.dart';
-//import 'package:incubapp_lite/services/counter_home.dart';
+import 'package:incubapp_lite/services/api_services.dart';
 import 'package:incubapp_lite/views/counter_home.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:incubapp_lite/utils/constants.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:incubapp_lite/views/rotation_home.dart';
-
-
-
-
 
 
 class GHome extends StatefulWidget {
@@ -28,20 +18,37 @@ class GHome extends StatefulWidget {
 }
 
 class _GHomeState extends State<GHome> {
-
-  int _selectedIndex = 0; 
-
+  final ApiService _apiService = ApiService();
+  String? incubadoraId;
+  int _selectedIndex = 0;
   InAppWebViewController? webViewController;
 
   @override
+  void initState() {
+    super.initState();
+    _loadIncubadoraName();
+  }
+
+  Future<void> _loadIncubadoraName() async {
+    final name = await _apiService.getIncubadoraName();
+    setState(() {
+      incubadoraId = name;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (incubadoraId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Visualizador Grafana'),
+        title: const Text('Visualizador Grafana'),
       ),
       body: InAppWebView(
         initialUrlRequest: URLRequest(
-          url: Uri.parse('https://grafana.altermundi.net/d/AUbefq24k/incubadoras-dashboard?orgId=3&from=1720184117758&to=1720205717760'),
+          url: Uri.parse(ApiConstants.getGrafanaUrl(incubadoraId!)),
         ),
         onWebViewCreated: (controller) {
           webViewController = controller;
@@ -62,7 +69,7 @@ class _GHomeState extends State<GHome> {
         backgroundColor: const Color.fromARGB(65, 65, 65, 1),
         selectedItemColor: Colors.grey,
         unselectedItemColor: Colors.black,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Inicio',
@@ -114,9 +121,8 @@ class _GHomeState extends State<GHome> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => RHome()));
         break;
       case 5:
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => GHome()));
+        // GHome
         break;
     }
   }
-
 }

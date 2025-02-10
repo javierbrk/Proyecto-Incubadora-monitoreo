@@ -4,6 +4,8 @@ class ApiConstants {
   static String actualEndPoint = '/actual';
   static String wifiEndPoint = '/wifi';
   static String configEndPoint = '/config';
-  static String grafUrl =
-      'https://grafana.altermundi.net/d/N8mU4Ro4z/incubadora?orgId=2&refresh=5s';
+  
+  static String getGrafanaUrl(String incubadoraId) {
+      return 'https://grafana.altermundi.net/d/2ebcKhKHz/visor-incubadoras-librepollo?orgId=2&refresh=5s&var-incubadora=$incubadoraId&kiosk';
+    }
 }

@@ -6,6 +6,8 @@ import 'package:incubapp_lite/models/actual_model.dart';
 import 'package:incubapp_lite/utils/constants.dart';
 import 'package:incubapp_lite/models/wifi_model.dart';
 import 'package:incubapp_lite/models/config_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 // logica para consumo de datos en la api
 
@@ -75,6 +77,9 @@ class ApiService {
       var response = await http.get(url);
       if (response.statusCode == 200) {
         Config model = configFromJson(response.body);
+        if (model.hash != null) {
+          await saveIncubadoraName(model.hash!);
+        }
         return model;
       } else {
         print('Respuesta de la API no exitosa: ${response.statusCode}');
@@ -84,6 +89,28 @@ class ApiService {
       log(e.toString());
     }
     return null;
+  }
+
+  Future<void> saveIncubadoraName(String name) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('incubadora_hash', name);
+      print('Nombre de incubadora guardado: $name');
+    } catch (e) {
+      print('Error al guardar nombre de incubadora: $e');
+      log(e.toString());
+    }
+  }
+
+  Future<String?> getIncubatorHash() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('incubadora_hash');
+    } catch (e) {
+      print('Error al obtener hash de incubadora: $e');
+      log(e.toString());
+      return null;
+    }
   }
 
   Future<Config?> updateConfig(Map<String, dynamic> updatedData) async {

@@ -240,7 +240,7 @@ end -- end function
 ------------------------------------------------------------------------------------
 function read_and_send_data()
     temp, hum, pres = incubator.get_values()
-    send_data_grafana(incubator.temperature, incubator.humidity, incubator.pressure, INICIALES)
+    send_data_grafana(incubator.temperature, incubator.humidity, incubator.pressure, incubator.hash)
 end -- read_and_send_data end
 
 ------------------------------------------------------------------------------------

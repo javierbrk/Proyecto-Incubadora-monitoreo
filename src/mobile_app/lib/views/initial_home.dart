@@ -10,6 +10,8 @@ import 'package:incubapp_lite/views/counter_home.dart';
 import 'package:incubapp_lite/views/graf_home.dart';
 import 'package:incubapp_lite/views/notif_home.dart';
 import 'package:incubapp_lite/views/rotation_home.dart';
+import 'package:incubapp_lite/views/ntfy_home.dart';
+
 
 void main() => runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -141,7 +143,17 @@ class _IHomeState extends State<IHome> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          actions: [
+          actions: [            
+            IconButton(
+              iconSize: 30.0,
+              icon: const Icon(Icons.chat, color: Colors.black),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NtfySubscriptionScreen()),
+                );
+              },
+            ),
             IconButton(
               iconSize: 30.0,
               icon: const Icon(Icons.notifications, color: Colors.black),
@@ -206,6 +218,16 @@ class _IHomeState extends State<IHome> {
         elevation: 0,
         actions: [
           IconButton(
+              iconSize: 30.0,
+              icon: const Icon(Icons.chat, color: Colors.black),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NtfySubscriptionScreen()),
+                );
+              },
+            ),
+          IconButton(
             iconSize: 30.0,
             icon: const Icon(Icons.notifications, color: Colors.black),
             onPressed: () {
@@ -214,7 +236,7 @@ class _IHomeState extends State<IHome> {
                 MaterialPageRoute(builder: (context) => NHome()),
               );
             },
-          ),
+          ),          
         ],
       ),
       backgroundColor: const Color.fromRGBO(65, 65, 65, 1),

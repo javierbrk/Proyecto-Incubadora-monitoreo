@@ -7,18 +7,17 @@ import 'package:incubapp_lite/views/graf_home.dart';
 import 'package:incubapp_lite/views/wifi_home.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
-
 class RHome extends StatefulWidget {
   @override
   _RHomeState createState() => _RHomeState();
 }
 
 class _RHomeState extends State<RHome> {
-
   int _selectedIndex = 0;
   bool _showConnectionError = false;
   bool _isConnected = false;
+  DateTime? _lastRotationCommand; // Variable para trackear el último comando
+  final _throttleDuration = const Duration(seconds: 1); // Duración del throttle
 
   @override
   void initState() {
@@ -63,6 +62,28 @@ class _RHomeState extends State<RHome> {
     });
     _checkConnection();
     _startConnectionTimer();
+  }
+
+  // Método para verificar si podemos enviar un nuevo comando
+  bool _canSendRotationCommand() {
+    if (_lastRotationCommand == null) return true;
+    return DateTime.now().difference(_lastRotationCommand!) >= _throttleDuration;
+  }
+
+  // Método para enviar comando de rotación con throttling
+  Future<void> _sendRotationCommand(String direction) async {
+    if (!_canSendRotationCommand()) {
+      print("Comando ignorado: muy pronto desde el último comando");
+      return;
+    }
+
+    try {
+      await ApiService().sendRotation(direction);
+      _lastRotationCommand = DateTime.now();
+      print("Comando de rotación hacia $direction enviado");
+    } catch (e) {
+      print("Error al enviar comando: $e");
+    }
   }
 
   @override
@@ -111,14 +132,7 @@ class _RHomeState extends State<RHome> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await ApiService().sendRotation('up');
-                        print("Comando de rotación hacia arriba enviado");
-                      } catch (e) {
-                        print("Error al enviar comando: $e");
-                      }
-                    },
+                    onPressed: () => _sendRotationCommand('up'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(15),
                       backgroundColor: Colors.white70,
@@ -131,14 +145,7 @@ class _RHomeState extends State<RHome> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await ApiService().sendRotation('down');
-                        print("Comando de rotación hacia abajo enviado");
-                      } catch (e) {
-                        print("Error al enviar comando: $e");
-                      }
-                    },
+                    onPressed: () => _sendRotationCommand('down'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(15),
                       backgroundColor: Colors.white70,
@@ -213,5 +220,4 @@ class _RHomeState extends State<RHome> {
         break;
     }
   }
-
 }

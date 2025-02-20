@@ -55,7 +55,7 @@ function configurator:create_config_file()
 					tray_one_date = 0,
 					tray_two_date = 0,
 					tray_three_date = 0,
-					incubation_period = 0,
+					incubation_period = 18,
 					hash = "incu-"..string.gsub(wifi.sta.getmac(),":",""),
 					incubator_name = string.format("incu-"..string.gsub(wifi.sta.getmac(),":","")),
 					max_hum = 65,

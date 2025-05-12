@@ -47,3 +47,5 @@ gpio.write(GPIOVOLTEO_EN, 0)
 gpio.config( { gpio={GPIOHUMID}, dir=gpio.OUT })
 gpio.set_drive(GPIOHUMID, gpio.DRIVE_3)
 gpio.write(GPIOHUMID, 1)
+
+ gpio = { GPIOREEDS_DOWN, GPIOREEDS_UP }, dir = gpio.IN, pull = gpio.PULL_UP })

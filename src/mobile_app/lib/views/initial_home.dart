@@ -278,7 +278,7 @@ class _IHomeState extends State<IHome> {
                   SizedBox(
                     width: size.width * 0.9,
                     child: buildValueIndicator(
-                      icon: FontAwesomeIcons.temperatureHalf,
+                      icon: FontAwesomeIcons.temperatureHalf.data,
                       title: "Temperatura",
                       value: "$temperature˚C",
                       valueColor: Tcolor(temperature, maxtemp, mintemp),
@@ -288,7 +288,7 @@ class _IHomeState extends State<IHome> {
                   SizedBox(
                     width: size.width * 0.9,
                     child: buildValueIndicator(
-                      icon: FontAwesomeIcons.droplet,
+                      icon: FontAwesomeIcons.droplet.data,
                       title: "Humedad",
                       value: "$humidity%",
                       valueColor: Hcolor(humidity, maxhum, minhum),

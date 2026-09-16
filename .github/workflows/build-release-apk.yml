@@ -22,9 +22,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.47.4'
           channel: 'stable'
-      
+          cache: true 
+          
       - name: Generate Android platform
         working-directory: src/mobile_app
         run: flutter create . --platforms android
@@ -32,6 +33,22 @@ jobs:
       - name: Get dependencies
         working-directory: src/mobile_app
         run: flutter pub get
+
+      - name: Patch AGP 9 ProGuard (flutter_inappwebview)
+        working-directory: src/mobile_app
+        run: |
+          set -euo pipefail
+          props="android/gradle.properties"
+          if [ -f "$props" ] && ! grep -q 'android.r8.proguardAndroidTxt.disallowed' "$props"; then
+            echo 'android.r8.proguardAndroidTxt.disallowed=false' >> "$props"
+          fi
+          cache="${PUB_CACHE:-$HOME/.pub-cache}"
+          find "$cache" \( -name 'build.gradle' -o -name 'build.gradle.kts' \) -print0 \
+            | xargs -0 grep -l "proguard-android.txt" \
+            | while IFS= read -r f; do
+                sed -i 's/proguard-android\.txt/proguard-android-optimize.txt/g' "$f"
+                echo "Patched $f"
+              done
 
       - name: Build APK (Release)
         working-directory: src/mobile_app

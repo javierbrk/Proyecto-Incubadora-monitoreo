@@ -34,41 +34,35 @@ jobs:
         working-directory: src/mobile_app
         run: flutter pub get
         
-      - name: Patch plugins for AGP 9 / compileSdk 36
+      - name: Patch flutter_inappwebview for AGP 9
         working-directory: src/mobile_app
+        shell: bash
         run: |
           set -euo pipefail
-          cache="${PUB_CACHE:-$HOME/.pub-cache}"
 
-          props="android/gradle.properties"
-          if [ -f "$props" ] && ! grep -q 'android.r8.proguardAndroidTxt.disallowed' "$props"; then
-            echo 'android.r8.proguardAndroidTxt.disallowed=false' >> "$props"
+          pub_cache="${PUB_CACHE:-$HOME/.pub-cache}"
+          plugin_gradle="$(find "$pub_cache/hosted" \
+            -type f \
+            -path '*/flutter_inappwebview_android-*/android/build.gradle' \
+            -print -quit 2>/dev/null || true)"
+
+          if [ -z "$plugin_gradle" ]; then
+            echo "No se encontró flutter_inappwebview_android en $pub_cache" >&2
+            exit 1
           fi
 
-          # ProGuard: no cambiar el nombre de la propiedad, solo el archivo
-          while IFS= read -r -d '' f; do
-            if grep -q 'proguard-android.txt' "$f"; then
-              sed -i 's/proguard-android\.txt/proguard-android-optimize.txt/g' "$f"
-              echo "ProGuard: $f"
-            fi
-          done < <(find "$cache" \( -name 'build.gradle' -o -name 'build.gradle.kts' \) -print0)
+          sed -i \
+            's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            "$plugin_gradle"
 
-          # compileSdk: conservar compileSdkVersion (Groovy) o compileSdk (KTS)
-          while IFS= read -r -d '' f; do
-            if grep -qE 'compileSdk(Version)?[[:space:]]*=?[[:space:]]*33' "$f"; then
-              sed -i -E \
-                -e 's/compileSdkVersion[[:space:]]*=?[[:space:]]*33/compileSdkVersion 36/g' \
-                -e 's/compileSdk[[:space:]]*=[[:space:]]*33/compileSdk = 36/g' \
-                -e 's/compileSdk[[:space:]]+33/compileSdk 36/g' \
-                "$f"
-              echo "compileSdk: $f"
-            fi
-          done < <(find "$cache" \( -name 'build.gradle' -o -name 'build.gradle.kts' \) -print0)
+          if grep -q 'proguard-android\.txt' "$plugin_gradle"; then
+            echo "El plugin todavía usa proguard-android.txt: $plugin_gradle" >&2
+            exit 1
+          fi
 
-          echo "=== android_intent_plus compileSdk ==="
-          grep -n -E 'compileSdk' "$cache"/hosted/pub.dev/android_intent_plus-*/android/build.gradle \
-            || grep -n -E 'compileSdk' "$cache"/hosted/*/android_intent_plus-*/android/build.gradle
-
+          echo "Plugin parcheado: $plugin_gradle"
+          grep -n 'proguardFiles' "$plugin_gradle"
+     
       - name: Build APK (Release)
         working-directory: src/mobile_app
         run: flutter build apk --release
